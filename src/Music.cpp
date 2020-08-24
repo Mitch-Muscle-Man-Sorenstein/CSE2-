@@ -34,8 +34,6 @@ class Music
 		virtual signed int GetVolume() = 0;
 		virtual void SetFadeout() = 0;
 		virtual bool GetFadeout() = 0;
-		virtual void SetFocused(bool _focused) = 0;
-		virtual bool GetFocused() = 0;
 		
 		virtual void Mix(int32_t *stream, unsigned long frequency, size_t len) = 0;
 };
@@ -121,16 +119,6 @@ class Music_Organya : public Music
 			if (name)
 				return org.GetFadeout();
 			return false;
-		}
-		
-		void SetFocused(bool focused) override
-		{
-			org.SetFocused(focused);
-		}
-		
-		bool GetFocused() override
-		{
-			return org.GetFocused();
 		}
 		
 		void Mix(int32_t *stream, unsigned long frequency, size_t len) override
@@ -223,12 +211,5 @@ void SetMusicFadeout()
 {
 	AudioBackend_Lock();
 	music->SetFadeout();
-	AudioBackend_Unlock();
-}
-
-void SetMusicFocused(bool focused)
-{
-	AudioBackend_Lock();
-	music->SetFocused(focused);
 	AudioBackend_Unlock();
 }

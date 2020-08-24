@@ -17,5 +17,3 @@ unsigned int GetMusicPosition();
 
 BOOL ChangeMusicVolume(signed int volume);
 void SetMusicFadeout();
-
-void SetMusicFocused(bool focused);

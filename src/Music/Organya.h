@@ -213,7 +213,6 @@ namespace Organya
 			
 			signed int volume = 100;
 			bool fading = false;
-			bool focused = true;
 			
 			unsigned int step_frames_counter;
 			uint32_t x;
@@ -244,9 +243,6 @@ namespace Organya
 			signed int GetVolume();
 			void SetFadeout();
 			bool GetFadeout() { return fading; }
-			
-			void SetFocused(bool _focused) { focused = _focused; }
-			bool GetFocused() { return focused; }
 			
 			//Mixing interface
 			void Mix(int32_t *stream, unsigned int stream_frequency, size_t stream_frames);

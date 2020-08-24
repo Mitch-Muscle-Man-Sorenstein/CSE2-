@@ -707,15 +707,7 @@ namespace Organya
 				i.Mix(stream, stream_frequency, frames_to_do);
 			for (auto &i : drum)
 				i.Mix(stream, stream_frequency, frames_to_do);
-			if (focused)
-			{
-				stream += frames_to_do * 2;
-			}
-			else
-			{
-				for (size_t i = 0; i < frames_to_do * 2; i++)
-					*stream++ >>= 3;
-			}
+			stream += frames_to_do * 2;
 			frames_done += frames_to_do;
 			step_frames_counter += frames_to_do;
 		}

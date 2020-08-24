@@ -60,7 +60,7 @@ BOOL LoadStageTable()
 		fread(gTMT[i].npc, 0x20, 1, fp);
 		fread(gTMT[i].boss, 0x20, 1, fp);
 		gTMT[i].boss_no = fgetc(fp);
-		fread(gTMT[i].name, 0x20, 1, fp);
+		fread(gTMT[i].name_jp, 0x20, 1, fp);
 		fread(gTMT[i].name, 0x20, 1, fp);
 	}
 	

@@ -531,7 +531,7 @@ void PutTextScript(void)
 			rect.right = rect.left + 16;
 			rect.top = (gTS.item / 16) * 16;
 			rect.bottom = rect.top + 16;
-			PutBitmap3(&grcFull, (WINDOW_WIDTH / 2) - 12, gTS.item_y, &rect, SURFACE_ID_ARMS_IMAGE);
+			PutBitmap3(&grcFull, (WINDOW_WIDTH / 2) - 9, gTS.item_y, &rect, SURFACE_ID_ARMS_IMAGE);
 		}
 		else
 		{
@@ -539,7 +539,7 @@ void PutTextScript(void)
 			rect.right = rect.left + 32;
 			rect.top = 16 * ((gTS.item - 1000) / 8);
 			rect.bottom = rect.top + 16;
-			PutBitmap3(&grcFull, (WINDOW_WIDTH / 2) - 20, gTS.item_y, &rect, SURFACE_ID_ITEM_IMAGE);
+			PutBitmap3(&grcFull, (WINDOW_WIDTH / 2) - 17, gTS.item_y, &rect, SURFACE_ID_ITEM_IMAGE);
 		}
 	}
 

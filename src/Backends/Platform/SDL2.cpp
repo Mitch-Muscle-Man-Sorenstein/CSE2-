@@ -162,15 +162,11 @@ void PlaybackBackend_EnableDragAndDrop(void)
 	SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 }
 
-bool Backend_SystemTask(bool active)
+bool Backend_SystemTask()
 {
-	if (SDL_PollEvent(NULL) || !active)
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
 	{
-		SDL_Event event;
-
-		if (!SDL_WaitEvent(&event))
-			return false;
-
 		switch (event.type)
 		{
 			case SDL_KEYUP:

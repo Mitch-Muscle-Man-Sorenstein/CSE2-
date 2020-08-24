@@ -479,3 +479,8 @@ void RenderBackend_HandleWindowResize(unsigned int width, unsigned int height)
 
 	// No problem for us
 }
+
+void RenderBackend_SetSurfaceColorMod(RenderBackend_Surface *surface, unsigned char red, unsigned char green, unsigned char blue)
+{
+	SDL_SetTextureColorMod(surface->texture, red, green, blue);
+}

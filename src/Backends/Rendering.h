@@ -29,3 +29,4 @@ void RenderBackend_DrawGlyph(RenderBackend_Glyph *glyph, long x, long y);
 void RenderBackend_FlushGlyphs(void);
 void RenderBackend_HandleRenderTargetLoss(void);
 void RenderBackend_HandleWindowResize(unsigned int width, unsigned int height);
+void RenderBackend_SetSurfaceColorMod(RenderBackend_Surface *surface, unsigned char red, unsigned char green, unsigned char blue);

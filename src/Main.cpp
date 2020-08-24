@@ -327,7 +327,7 @@ void InactiveWindow(void)
 	if (bActive)
 	{
 		bActive = FALSE;
-		SetMusicFocused(false);
+		//SetMusicFocused(false);
 		SleepNoise();
 	}
 }
@@ -337,7 +337,7 @@ void ActiveWindow(void)
 	if (!bActive)
 	{
 		bActive = TRUE;
-		SetMusicFocused(true);
+		//SetMusicFocused(true);
 		ResetNoise();
 	}
 }
@@ -348,11 +348,8 @@ BOOL SystemTask(void)
 {
 	static bool previous_keyboard_state[BACKEND_KEYBOARD_TOTAL];
 
-	do
-	{
-		if (!Backend_SystemTask(bActive))
-			return FALSE;
-	} while(!bActive);
+	if (!Backend_SystemTask())
+		return FALSE;
 
 	bool keyboard_state[BACKEND_KEYBOARD_TOTAL];
 	Backend_GetKeyboardState(keyboard_state);

@@ -50,10 +50,8 @@ void PlaybackBackend_EnableDragAndDrop(void)
 	
 }
 
-bool Backend_SystemTask(bool active)
+bool Backend_SystemTask()
 {
-	(void)active;
-
 	return true;
 }
 

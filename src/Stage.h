@@ -57,6 +57,7 @@ typedef struct STAGE_TABLE
 	char npc[0x20];
 	char boss[0x20];
 	signed char boss_no;
+	char name_jp[0x20];
 	char name[0x20];
 } STAGE_TABLE;
 
