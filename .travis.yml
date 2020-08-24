@@ -1,0 +1,148 @@
+# Optimize git clone
+git:
+    depth: 5
+
+# Bionic is the most recent version of Ubuntu I can get to work properly
+dist: bionic
+
+# Enable C++ language support
+language: cpp
+
+# Cache compiled object files with ccache
+cache: ccache
+
+osx_image: xcode11.3
+
+compiler:
+    - gcc
+    - clang
+
+os:
+    - linux
+    - osx
+
+addons:
+  apt:
+    sources:
+        - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main'
+          key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+        - sourceline: 'ppa:ubuntu-toolchain-r/test'
+    packages:
+        - make
+        - cmake
+        - gcc-9
+        - g++-9
+        - clang-9
+        - libsdl2-dev
+        - libglfw3-dev
+        - libfreetype6-dev
+  homebrew:
+    packages:
+        - make
+        - cmake
+        - gcc@9
+        - llvm@9
+        - sdl2
+        - glfw
+        - freetype
+    update: true
+
+env:
+    - PLATFORM=SDL2 AUDIO=SDL2 RENDERER=Software
+    - PLATFORM=SDL2 AUDIO=SDL2 RENDERER=SDLSurface
+    - PLATFORM=SDL2 AUDIO=SDL2 RENDERER=SDLTexture
+    - PLATFORM=SDL2 AUDIO=SDL2 RENDERER=OpenGL3
+    - PLATFORM=SDL2 AUDIO=SDL2 RENDERER=OpenGLES2
+    - PLATFORM=GLFW3 AUDIO=miniaudio RENDERER=Software
+    - PLATFORM=GLFW3 AUDIO=miniaudio RENDERER=OpenGL3
+    - PLATFORM=GLFW3 AUDIO=miniaudio RENDERER=OpenGLES2
+    - PLATFORM=Null AUDIO=Null RENDERER=Software
+
+jobs:
+  exclude:
+    # macOS doesn't support OpenGLES2, apparently
+    - os: osx
+      env: PLATFORM=SDL2 AUDIO=SDL2 RENDERER=OpenGLES2
+    - os: osx
+      env: PLATFORM=GLFW3 AUDIO=miniaudio RENDERER=OpenGLES2
+    # GCC is mysteriously broken when trying to parse macOS headers for miniaudio
+    - os: osx
+      compiler: gcc
+      env: PLATFORM=GLFW3 AUDIO=miniaudio RENDERER=OpenGL3
+    - os: osx
+      compiler: gcc
+      env: PLATFORM=GLFW3 AUDIO=miniaudio RENDERER=Software
+
+before_install:
+    # Set URL for Discord send script
+    - DISCORD_SEND_SCRIPT_URL=https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
+    - DISCORD_SEND_SCRIPT_FILENAME=discordSendNotification.sh
+
+    # Display available disk space
+    - df -h
+
+    # Display Travis OS name
+    - echo $TRAVIS_OS_NAME
+
+    # The following Homebrew packages aren't linked by default, and need to be prepended to the path explicitly.
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+        export PATH="$(brew --prefix llvm)/bin:$PATH";
+      fi
+
+    # /usr/bin/gcc points to an older compiler on both Linux and macOS.
+    - if [ "$CXX" = "g++" ]; then export CXX="g++-9" CC="gcc-9"; fi
+
+    # /usr/bin/clang points to an older compiler on both Linux and macOS.
+    #
+    # Homebrew's llvm package doesn't ship a versioned clang++ binary, so the values
+    # below don't work on macOS. Fortunately, the path change above makes the
+    # default values (clang and clang++) resolve to the correct compiler on macOS.
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+        if [ "$CXX" = "clang++" ]; then export CXX="clang++-9" CC="clang-9"; fi;
+      fi
+
+    # Display compilers/cmake name/version
+    - echo ${CC}
+    - echo ${CXX}
+    - ${CC} --version
+    - ${CXX} --version
+    - cmake --version
+
+install:
+    # Get number of cores (or 2 by default if somehow none of these are available somehow)
+    - JOBS=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)
+    - echo $JOBS
+
+    # Recommanded build directory
+    - CMAKE_BUILD_DIR=build
+
+    # Install ccache on OSX
+    - |
+      if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
+          # This is OSX
+          brew install ccache
+          export PATH="/usr/local/opt/ccache/libexec:$PATH"
+      fi
+
+before_script:
+    # Make build directory and generate CMake build files
+    - mkdir -p ${CMAKE_BUILD_DIR} && cd ${CMAKE_BUILD_DIR}
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DFIX_BUGS=ON -DBACKEND_PLATFORM=$PLATFORM -DBACKEND_AUDIO=$AUDIO -DBACKEND_RENDERER=$RENDERER -DCMAKE_C_FLAGS="-Wall -Wextra -pedantic" -DCMAKE_CXX_FLAGS="-Wall -Wextra -pedantic"
+    - cd ..
+
+script:
+    - cd ${CMAKE_BUILD_DIR}
+    - cmake --build . --config Release --parallel $JOBS
+    - cd ..
+
+after_success:
+    # Send success notification to Discord through DISCORD_WEBHOOK_URL
+    - travis_retry wget ${DISCORD_SEND_SCRIPT_URL} -O ${DISCORD_SEND_SCRIPT_FILENAME}
+    - chmod +x ${DISCORD_SEND_SCRIPT_FILENAME}
+    - ./${DISCORD_SEND_SCRIPT_FILENAME} success $DISCORD_WEBHOOK_URL
+
+after_failure:
+    # Send failure notification to Discord through DISCORD_WEBHOOK_URL
+    - travis_retry wget ${DISCORD_SEND_SCRIPT_URL} -O ${DISCORD_SEND_SCRIPT_FILENAME}
+    - chmod +x ${DISCORD_SEND_SCRIPT_FILENAME}
+    - ./${DISCORD_SEND_SCRIPT_FILENAME} failure $DISCORD_WEBHOOK_URL
