@@ -109,8 +109,8 @@ bool Ogg::Stop()
 bool Ogg::SetPosition(uint32_t x)
 {
 	size_t i = 0;
-	while (x > data.decoder[i].length && ++i < data.decoder.size())
-		x -= data.decoder[i-1].length;
+	while (x > data.decoder[i].length && i + 1 < data.decoder.size())
+		x -= data.decoder[i++].length;
 	data.current_decoder = i;
 	stb_vorbis_seek_frame(data.decoder[i].decoder, x);
 	return false;

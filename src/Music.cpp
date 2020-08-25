@@ -58,7 +58,7 @@ class Music_Organya : public Music
 		//Music interface
 		bool Load(const char *_name) override
 		{
-			std::string path = FindFilePath((gDataPath + "/Org/" + name + ".org").c_str());
+			std::string path = FindFilePath((gDataPath + "/Org/" + _name + ".org").c_str());
 			if (org.Load(path))
 			{
 				name = nullptr;
@@ -147,7 +147,7 @@ class Music_Ogg : public Music
 		//Music interface
 		bool Load(const char *_name) override
 		{
-			std::string path = (gDataPath + "/Ogg11/" + _name);
+			std::string path = (gDataPath + "/SNES/" + _name);
 			if (ogg.Load(path))
 			{
 				name = nullptr;
@@ -257,7 +257,7 @@ void EndMusic()
 {
 	//Stop music callback
 	AudioBackend_Lock();
-	AudioBackend_SetMusicCallback(Music_Callback);
+	AudioBackend_SetMusicCallback(nullptr);
 	AudioBackend_Unlock();
 	
 	//Delete music
