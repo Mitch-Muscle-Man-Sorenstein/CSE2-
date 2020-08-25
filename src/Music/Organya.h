@@ -218,11 +218,11 @@ namespace Organya
 			bool Stop();
 			
 			bool IsPlaying() const { return playing; };
-			uint32_t GetPosition();
+			uint32_t GetPosition() { return x; }
 			
-			void SetVolume(signed int _volume);
-			signed int GetVolume();
-			void SetFadeout();
+			void SetVolume(signed int _volume) { volume = _volume; }
+			signed int GetVolume() { return volume; }
+			void SetFadeout() { fading = true; }
 			bool GetFadeout() { return fading; }
 			
 			//Mixing interface

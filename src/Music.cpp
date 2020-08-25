@@ -147,7 +147,7 @@ class Music_Ogg : public Music
 		//Music interface
 		bool Load(const char *_name) override
 		{
-			std::string path = (gDataPath + "/Ogg/" + _name);
+			std::string path = (gDataPath + "/Ogg11/" + _name);
 			if (ogg.Load(path))
 			{
 				name = nullptr;
@@ -191,27 +191,27 @@ class Music_Ogg : public Music
 		
 		void SetVolume(signed int volume) override
 		{
-			//if (name)
-			//	ogg.SetVolume(volume);
+			if (name)
+				ogg.SetVolume(volume);
 		}
 		
 		signed int GetVolume() override
 		{
-			//if (name)
-			//	return ogg.GetVolume();
+			if (name)
+				return ogg.GetVolume();
 			return 100;
 		}
 		
 		void SetFadeout() override
 		{
-			//if (name)
-			//	ogg.SetFadeout();
+			if (name)
+				ogg.SetFadeout();
 		}
 		
 		bool GetFadeout() override
 		{
-			//if (name)
-			//	return ogg.GetFadeout();
+			if (name)
+				return ogg.GetFadeout();
 			return false;
 		}
 		

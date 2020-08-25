@@ -15,7 +15,7 @@ ma_uint32 MusicResampleCallback(ma_pcm_converter *dsp, void *buffer, ma_uint32 f
 	while (samples_read < samples)
 	{
 		//Read data and advance through buffer
-		int read = stb_vorbis_get_samples_short_interleaved(data->decoder[data->current_decoder], data->channels, bufferp, samples - samples_read) * data->channels;
+		int read = stb_vorbis_get_samples_short_interleaved(data->decoder[data->current_decoder].decoder, data->channels, bufferp, samples - samples_read) * data->channels;
 		bufferp += read;
 		samples_read += read;
 		
@@ -25,7 +25,7 @@ ma_uint32 MusicResampleCallback(ma_pcm_converter *dsp, void *buffer, ma_uint32 f
 			//Get next decoder index and play it
 			if (++data->current_decoder >= data->decoder.size())
 				data->current_decoder--;
-			stb_vorbis_seek_start(data->decoder[data->current_decoder]);
+			stb_vorbis_seek_start(data->decoder[data->current_decoder].decoder);
 			break;
 		}
 	}
@@ -51,7 +51,17 @@ bool Ogg::LoadTrack(FILE *file)
 		return true;
 	else if ((decoder = stb_vorbis_open_file(file, 1, &error, nullptr)) == nullptr)
 		return true;
-	data.decoder.push_back(decoder);
+	
+	//Get track information and push to decoder list
+	Decoder dec_struct;
+	
+	stb_vorbis_info info = stb_vorbis_get_info(decoder);
+	data.frequency = info.sample_rate;
+	data.channels = info.channels;
+	
+	dec_struct.decoder = decoder;
+	dec_struct.length = stb_vorbis_stream_length_in_samples(decoder) / data.channels;
+	data.decoder.push_back(dec_struct);
 	return false;
 }
 
@@ -75,11 +85,6 @@ bool Ogg::Load(std::string name)
 			return true;
 	}
 	
-	//Get song information
-	stb_vorbis_info info = stb_vorbis_get_info(data.decoder[0]);
-	data.frequency = info.sample_rate;
-	data.channels = info.channels;
-	
 	//Initialize resampler
 	config = ma_pcm_converter_config_init(ma_format_s16, data.channels, data.frequency, ma_format_s16, 2, 0, MusicResampleCallback, (void*)&data);
 	return false;
@@ -89,6 +94,9 @@ bool Ogg::Load(std::string name)
 bool Ogg::Play()
 {
 	playing = true;
+	volume = 100;
+	fading = false;
+	fade_counter = 0;
 	return false;
 }
 
@@ -100,18 +108,38 @@ bool Ogg::Stop()
 
 bool Ogg::SetPosition(uint32_t x)
 {
-	
+	size_t i = 0;
+	while (x > data.decoder[i].length && ++i < data.decoder.size())
+		x -= data.decoder[i-1].length;
+	data.current_decoder = i;
+	stb_vorbis_seek_frame(data.decoder[i].decoder, x);
 	return false;
 }
 
 uint32_t Ogg::GetPosition()
 {
-	return 0;
+	size_t pre_pos = 0;
+	for (size_t i = 0; i < data.current_decoder; i++)
+		pre_pos += data.decoder[i].length;
+	return pre_pos + stb_vorbis_get_sample_offset(data.decoder[data.current_decoder].decoder);
 }
 
 //Mixing interface
 void Ogg::Mix(int32_t *stream, unsigned int stream_frequency, size_t stream_frames)
 {
+	//Fade out
+	if (fading)
+	{
+		unsigned int fade_rate = stream_frequency / 40;
+		fade_counter += stream_frames;
+		while (fade_counter >= fade_rate)
+		{
+			if (volume > 0)
+				volume--;
+			fade_counter -= fade_rate;
+		}
+	}
+	
 	//Initialize resampler with our stream frequency
 	if (config.sampleRateOut != stream_frequency)
 	{
@@ -128,7 +156,7 @@ void Ogg::Mix(int32_t *stream, unsigned int stream_frequency, size_t stream_fram
 	//Mix song
 	int16_t *bufferp = buffer;
 	for (size_t i = 0; i < stream_frames * 2; i++)
-		*stream++ += *bufferp++;
+		*stream++ += *bufferp++ * (volume + 40) / 140;
 	delete[] buffer;
 	
 }

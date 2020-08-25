@@ -637,26 +637,6 @@ namespace Organya
 		return false;
 	}
 	
-	uint32_t Instance::GetPosition()
-	{
-		return x;
-	}
-	
-	void Instance::SetVolume(signed int _volume)
-	{
-		volume = _volume;
-	}
-	
-	signed int Instance::GetVolume()
-	{
-		return volume;
-	}
-	
-	void Instance::SetFadeout()
-	{
-		fading = true;
-	}
-	
 	//Mixing interface
 	void Instance::Mix(int32_t *stream, unsigned int stream_frequency, size_t stream_frames)
 	{
