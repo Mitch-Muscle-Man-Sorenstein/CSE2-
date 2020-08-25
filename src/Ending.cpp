@@ -82,12 +82,7 @@ void PutStripper(void)
 		if (Strip[s].flag & 0x80)
 		{
 			// Draw text
-			rc.left = 0;
-			rc.right = 320;
-			rc.top = s * 16;
-			rc.bottom = rc.top + 16;
-
-			PutBitmap3(&grcFull, (Strip[s].x / 0x200) + ((WINDOW_WIDTH - 320) / 2), (Strip[s].y / 0x200), &rc, SURFACE_ID_CREDIT_CAST);
+			PutText((Strip[s].x / 0x200) + ((WINDOW_WIDTH - 320) / 2), (Strip[s].y / 0x200), Strip[s].str, 0xFFFFFF);
 
 			// Draw character
 			rc.left = (Strip[s].cast % 13) * 24;
@@ -125,30 +120,12 @@ void SetStripper(int x, int y, const char *text, int cast)
 	rc.right = 320;
 	rc.top = s * 16;
 	rc.bottom = rc.top + 16;
-
-	CortBox2(&rc, 0, SURFACE_ID_CREDIT_CAST);
-	PutText2(0, rc.top, text, RGB(0xFF, 0xFF, 0xFE), SURFACE_ID_CREDIT_CAST);
 }
 
 // Regenerate cast text
 void RestoreStripper(void)
 {
-	int s;
-	RECT rc;
-
-	for (s = 0; s < MAX_STRIP; ++s)
-	{
-		if (Strip[s].flag & 0x80)
-		{
-			rc.left = 0;
-			rc.right = 320;
-			rc.top = s * 16;
-			rc.bottom = rc.top + 16;
-
-			CortBox2(&rc, 0, SURFACE_ID_CREDIT_CAST);
-			PutText2(0, rc.top, Strip[s].str, RGB(0xFF, 0xFF, 0xFE), SURFACE_ID_CREDIT_CAST);
-		}
-	}
+	return;
 }
 
 // Handle the illustration
@@ -250,11 +227,7 @@ BOOL StartCreditScript(void)
 	// Read data
 	fread(Credit.pData, 1, Credit.size, fp);
 	EncryptionBinaryData2((unsigned char*)Credit.pData, Credit.size);
-
-#ifdef FIX_BUGS
-	// The original game forgot to close the file
 	fclose(fp);
-#endif
 
 	// Reset credits
 	Credit.offset = 0;
@@ -265,12 +238,9 @@ BOOL StartCreditScript(void)
 
 	// Modify cliprect
 	grcGame.left = WINDOW_WIDTH / 2;
-#if WINDOW_WIDTH != 320 || WINDOW_HEIGHT != 240
-	// These three are non-vanilla: for wide/tallscreen support
 	grcGame.right = ((WINDOW_WIDTH - 320) / 2) + 320;
 	grcGame.top = (WINDOW_HEIGHT - 240) / 2;
 	grcGame.bottom = ((WINDOW_HEIGHT - 240) / 2) + 240;
-#endif
 
 	// Reload casts
 	if (!ReloadBitmap_File("casts", SURFACE_ID_CASTS))

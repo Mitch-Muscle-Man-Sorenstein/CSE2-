@@ -33,7 +33,7 @@ static void Callback(void *user_data, Uint8 *stream_uint8, int len)
 
 		size_t subframes = MIN(0x800, frames_total - frames_done);
 
-		memset(mix_buffer, 0, subframes * sizeof(long) * 2);
+		memset(mix_buffer, 0, subframes * sizeof(int32_t) * 2);
 
 		if (music_callback != nullptr)
 			music_callback(mix_buffer, output_frequency, subframes);
@@ -68,7 +68,7 @@ bool AudioBackend_Init(void)
 		Backend_PrintInfo("%s", SDL_GetAudioDriver(i));
 
 	SDL_AudioSpec specification;
-	specification.freq = 48000;
+	specification.freq = 44100;
 	specification.format = AUDIO_S16;
 	specification.channels = 2;
 	specification.samples = 0x400;	// Roughly 10 milliseconds for 48000Hz

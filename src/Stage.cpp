@@ -32,9 +32,7 @@ MusicID gMusicNo;
 unsigned int gOldPos;
 MusicID gOldNo;
 
-STAGE_TABLE *gTMT;
-
-BOOL loaded_stbl = FALSE;
+STAGE_TABLE *gTMT = nullptr;
 
 BOOL LoadStageTable()
 {
@@ -48,7 +46,8 @@ BOOL LoadStageTable()
 	unsigned int entries = ftell(fp) / 0xE5;
 	fseek(fp, 0, SEEK_SET);
 	
-	free(gTMT);
+	if (gTMT != nullptr)
+		free(gTMT);
 	gTMT = (STAGE_TABLE*)malloc(entries * sizeof(STAGE_TABLE));
 	
 	for (unsigned int i = 0; i < entries; i++)
@@ -75,11 +74,10 @@ BOOL TransferStage(int no, int w, int x, int y)
 	BOOL bError;
 	
 	//Load stage table
-	if (!loaded_stbl)
+	if (gTMT == nullptr)
 	{
 		if (!LoadStageTable())
 			return FALSE;
-		loaded_stbl = TRUE;
 	}
 
 	// Move character

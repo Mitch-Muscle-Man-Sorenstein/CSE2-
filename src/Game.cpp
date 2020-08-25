@@ -287,8 +287,8 @@ static int ModeTitle(void)
 	static RECT rcTitle = {0, 0, 210, 49};
 	
 	//Set colours
-	static const unsigned long text_white_col = GetCortBoxColor(0xFFFFFF);
-	static const unsigned long text_grey_col = GetCortBoxColor(0x7F7F7F);
+	static const unsigned long text_white_col = 0xFFFFFF;
+	static const unsigned long text_grey_col = 0x7F7F7F;
 	
 	//Quote cursor
 	static RECT rcQuote[4] = {
@@ -352,7 +352,7 @@ static int ModeTitle(void)
 		{FALSE, nullptr}
 	};
 	
-	static MenuManager main_menu_manager(main_menu);
+	MenuManager main_menu_manager(main_menu);
 	
 	//Save menu
 	std::unordered_map<std::string, bool> hasSave;
@@ -379,7 +379,7 @@ static int ModeTitle(void)
 		{FALSE, nullptr}
 	};
 	
-	static MenuManager save_menu_manager(save_menu);
+	MenuManager save_menu_manager(save_menu);
 	
 	//New save menu
 	enum NMID
@@ -396,7 +396,7 @@ static int ModeTitle(void)
 		{FALSE, nullptr}
 	};
 	
-	static MenuManager new_menu_manager(new_menu);
+	MenuManager new_menu_manager(new_menu);
 	
 	//Delete save menu
 	enum DMID
@@ -415,7 +415,7 @@ static int ModeTitle(void)
 		{FALSE, nullptr}
 	};
 	
-	static MenuManager delete_menu_manager(delete_menu);
+	MenuManager delete_menu_manager(delete_menu);
 	
 	//Delete confirm save menu
 	enum DCMID
@@ -430,7 +430,7 @@ static int ModeTitle(void)
 		{FALSE, nullptr}
 	};
 	
-	static MenuManager delete_confirm_menu_manager(delete_confirm_menu);
+	MenuManager delete_confirm_menu_manager(delete_confirm_menu);
 	
 	//Quit menu
 	enum QMID
@@ -445,7 +445,7 @@ static int ModeTitle(void)
 		{FALSE, nullptr}
 	};
 	
-	static MenuManager quit_menu_manager(quit_menu);
+	MenuManager quit_menu_manager(quit_menu);
 	
 	//Start loop
 	while (mode != TM_Play)
@@ -969,9 +969,8 @@ static int ModeNicalis()
 	grcGame.right = WINDOW_WIDTH;
 	grcGame.bottom = WINDOW_HEIGHT;
 	
-	//Load Nicalis logo
+	//Nicalis logo
 	RECT rcNicalis = {0, 0, 256, 32};
-	MakeSurface_File("Nicalis", SURFACE_ID_NICALIS);
 	
 	//Initialize fading and timing
 	int timer = 0, mode = 0;

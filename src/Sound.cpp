@@ -29,9 +29,12 @@ BOOL InitDirectSound(void)
 
 	if (!audio_backend_initialised)
 		return FALSE;
-
+	
 	for (i = 0; i < SE_MAX; i++)
+	{
 		lpSECONDARYBUFFER[i] = NULL;
+		gPxtSnd[i].data = nullptr;
+	}
 
 	StartMusic();
 	return TRUE;
@@ -42,9 +45,7 @@ void EndDirectSound(void)
 {
 	int i;
 
-	if (!audio_backend_initialised)
-		return;
-
+	//End and free sound data
 	EndMusic();
 
 	for (i = 0; i < SE_MAX; i++)
@@ -54,6 +55,9 @@ void EndDirectSound(void)
 		free(gPxtSnd[i].data);
 	}
 
+	//Quit audio backend
+	if (!audio_backend_initialised)
+		return;
 	AudioBackend_Deinit();
 }
 
@@ -137,12 +141,8 @@ int MakePixToneObject(const PIXTONEPARAMETER *ptp, int ptp_num, int no)
 
 	if (pcm_buffer == NULL || mixed_pcm_buffer == NULL)
 	{
-		if (pcm_buffer != NULL)
-			free(pcm_buffer);
-
-		if (mixed_pcm_buffer != NULL)
-			free(mixed_pcm_buffer);
-
+		free(pcm_buffer);
+		free(mixed_pcm_buffer);
 		return -1;
 	}
 
@@ -177,20 +177,16 @@ int MakePixToneObject(const PIXTONEPARAMETER *ptp, int ptp_num, int no)
 		++ptp_pointer;
 	}
 
-	// This is self-assignment, so redundant. Maybe this used to be something to prevent audio popping ?
-	mixed_pcm_buffer[0] = mixed_pcm_buffer[0];
-	mixed_pcm_buffer[sample_count - 1] = mixed_pcm_buffer[sample_count - 1];
-
+	// Create backend sound
 	lpSECONDARYBUFFER[no] = AudioBackend_CreateSound(22050, mixed_pcm_buffer, sample_count);
-
-	if (pcm_buffer != NULL)
-		free(pcm_buffer);
+	free(pcm_buffer);
 
 	//Convert sound to signed 8 bit and store it for later usage
-	PXT_SND *snd = &gPxtSnd[no];
 	uint8_t *mpb = mixed_pcm_buffer;
 	for (int i = 0; i < sample_count; i++)
 		*mpb++ -= 0x80;
+	
+	PXT_SND *snd = &gPxtSnd[no];
 	snd->data = (int8_t*)mixed_pcm_buffer;
 	snd->size = sample_count;
 

@@ -36,7 +36,7 @@ static BOOL bFPS = FALSE;
 static int windowWidth;
 static int windowHeight;
 
-static const char* const lpWindowName = "Cave Story+";
+static const char* const lpWindowName = "Cave Story-";
 
 // Framerate stuff
 static unsigned long CountFramePerSecound(void)

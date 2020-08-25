@@ -236,6 +236,8 @@ BOOL LoadGenericData(void)
 	BOOL bError;
 
 	bError = FALSE;
+	if (!MakeSurface_File("Nicalis", SURFACE_ID_NICALIS))
+		bError = TRUE;
 	if (!MakeSurface_File("MyChar", SURFACE_ID_MY_CHAR))
 		bError = TRUE;
 	if (!MakeSurface_File("Title", SURFACE_ID_TITLE))
@@ -278,7 +280,6 @@ BOOL LoadGenericData(void)
 	MakeSurface_Generic(40, 240, SURFACE_ID_VALUE_VIEW, FALSE);
 	MakeSurface_Generic(320, 240, SURFACE_ID_LEVEL_SPRITESET_1, FALSE);
 	MakeSurface_Generic(320, 240, SURFACE_ID_LEVEL_SPRITESET_2, FALSE);
-	MakeSurface_Generic(320, 16 * (MAX_STRIP - 1), SURFACE_ID_CREDIT_CAST, FALSE);
 
 	if (!LoadPixTone())
 		return FALSE;

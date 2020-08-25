@@ -33,7 +33,7 @@ std::string FindFilePath(const char *path)
 		
 		if (dir != nullptr)
 		{
-			while ((ent = readdir (dir)) != NULL)
+			while ((ent = readdir(dir)) != NULL)
 			{
 				if (ent->d_type == DT_REG)
 				{
@@ -41,9 +41,13 @@ std::string FindFilePath(const char *path)
 					std::string low_path = this_path;
 					std::transform(low_path.begin(), low_path.end(), low_path.begin(), [](unsigned char c){return std::tolower(c);});
 					if (low_path == low)
+					{
+						closedir(dir);
 						return this_path;
+					}
 				}
 			}
+			closedir(dir);
 		}
 	#endif
 	return std::string(path);

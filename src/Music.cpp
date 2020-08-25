@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stddef.h>
+#include <iostream>
 
 #include "Main.h"
 #include "File.h"
@@ -9,6 +10,7 @@
 #include "Backends/Audio.h"
 
 #include "Music/Organya.h"
+#include "Music/Ogg.h"
 
 //Music base class
 class Music
@@ -56,11 +58,14 @@ class Music_Organya : public Music
 		//Music interface
 		bool Load(const char *_name) override
 		{
-			name = _name;
 			std::string path = FindFilePath((gDataPath + "/Org/" + name + ".org").c_str());
 			if (org.Load(path))
-				return false;
-			return true;
+			{
+				name = nullptr;
+				return true;
+			}
+			name = _name;
+			return false;
 		}
 		
 		void Play() override
@@ -128,6 +133,95 @@ class Music_Organya : public Music
 		}
 };
 
+//Ogg music class
+class Music_Ogg : public Music
+{
+	private:
+		//Ogg
+		Ogg ogg;
+		
+	public:
+		//Constructor
+		Music_Ogg() {}
+		
+		//Music interface
+		bool Load(const char *_name) override
+		{
+			std::string path = (gDataPath + "/Ogg/" + _name);
+			if (ogg.Load(path))
+			{
+				name = nullptr;
+				return true;
+			}
+			name = _name;
+			return false;
+		}
+		
+		void Play() override
+		{
+			if (name)
+				ogg.Play();
+		}
+		
+		void Stop() override
+		{
+			if (name)
+				ogg.Stop();
+		}
+		
+		bool IsPlaying() override
+		{
+			if (name)
+				return ogg.IsPlaying();
+			return false;
+		}
+		
+		void SetPosition(unsigned int x) override
+		{
+			if (name)
+				ogg.SetPosition(x);
+		}
+		
+		unsigned int GetPosition() override
+		{
+			if (name)
+				return ogg.GetPosition();
+			return 0;
+		}
+		
+		void SetVolume(signed int volume) override
+		{
+			//if (name)
+			//	ogg.SetVolume(volume);
+		}
+		
+		signed int GetVolume() override
+		{
+			//if (name)
+			//	return ogg.GetVolume();
+			return 100;
+		}
+		
+		void SetFadeout() override
+		{
+			//if (name)
+			//	ogg.SetFadeout();
+		}
+		
+		bool GetFadeout() override
+		{
+			//if (name)
+			//	return ogg.GetFadeout();
+			return false;
+		}
+		
+		void Mix(int32_t *stream, unsigned long frequency, size_t len) override
+		{
+			if (ogg.IsPlaying())
+				ogg.Mix(stream, frequency, len);
+		}
+};
+
 //Music interface
 Music *music = nullptr;
 
@@ -139,7 +233,7 @@ void Music_Callback(int32_t *stream, unsigned long frequency, size_t len)
 BOOL LoadMusic(const char *name)
 {
 	AudioBackend_Lock();
-	if (!music->Load(name))
+	if (music->Load(name))
 	{
 		AudioBackend_Unlock();
 		return FALSE;
@@ -151,7 +245,7 @@ BOOL LoadMusic(const char *name)
 BOOL StartMusic()
 {
 	//Create music to use
-	if ((music = new Music_Organya()) == nullptr)
+	if ((music = new Music_Ogg()) == nullptr)
 		return FALSE;
 	
 	//Set music callback

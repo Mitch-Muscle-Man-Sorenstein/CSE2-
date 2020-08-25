@@ -11,31 +11,12 @@
 #include "../Sound.h"
 #include "../Attributes.h"
 
+//Music
+#include "FixedPoint.h"
+
 //Organya namespace
 namespace Organya
 {
-	#pragma pack(push)
-	#pragma pack(1)
-	template <typename T, typename TU, typename TL>
-	union FixedPoint
-	{
-		#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-			struct
-			{
-				TL lower;
-				TU upper;
-			} fixed;
-		#elif SDL_BYTEORDER == SDL_BIG_ENDIAN
-			struct
-			{
-				TU upper;
-				TL lower;
-			} fixed;
-		#endif
-		T value;
-	};
-	#pragma pack(pop)
-
 	//Audio buffer class
 	class Buffer
 	{
@@ -227,7 +208,7 @@ namespace Organya
 			//Data initialization
 			bool InitializeData();
 			
-			//Loading, saving, and creation
+			//Loading
 			bool Load(std::istream &stream);
 			bool Load(std::string _path);
 			

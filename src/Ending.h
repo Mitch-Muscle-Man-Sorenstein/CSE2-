@@ -4,7 +4,7 @@
 
 #include "CommonDefines.h"
 
-#define MAX_STRIP ((WINDOW_HEIGHT / 16) + 1)
+#define MAX_STRIP 24
 
 void ActionStripper(void);
 void PutStripper(void);

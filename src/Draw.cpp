@@ -114,19 +114,11 @@ void EndDirectDraw(void)
 
 	// Release all surfaces
 	for (i = 0; i < SURFACE_ID_MAX; ++i)
-	{
-		if (surf[i] != NULL)
-		{
-			RenderBackend_FreeSurface(surf[i]);
-			surf[i] = NULL;
-		}
-	}
+		ReleaseSurface((SurfaceID)i);
 
 	framebuffer = NULL;
 
 	RenderBackend_Deinit();
-
-	memset(surface_metadata, 0, sizeof(surface_metadata));
 }
 
 void ReleaseSurface(SurfaceID s)
@@ -205,17 +197,7 @@ BOOL MakeSurface_File(const char *name, SurfaceID surf_no)
 {
 	std::string path = gDataPath + '/' + name + ".bmp";
 
-	if (!IsEnableBitmap(path.c_str()))
-	{
-		ErrorLog(path.c_str(), 0);
-		return FALSE;
-	}
-
-#ifdef FIX_BUGS
 	if (surf_no >= SURFACE_ID_MAX)
-#else
-	if (surf_no > SURFACE_ID_MAX)
-#endif
 	{
 		ErrorLog("surface no", surf_no);
 		return FALSE;
@@ -271,18 +253,8 @@ BOOL ReloadBitmap_Resource(const char *name, SurfaceID surf_no)
 BOOL ReloadBitmap_File(const char *name, SurfaceID surf_no)
 {
 	std::string path = gDataPath + '/' + name + ".bmp";
-
-	if (!IsEnableBitmap(path.c_str()))
-	{
-		ErrorLog(path.c_str(), 0);
-		return FALSE;
-	}
-
-#ifdef FIX_BUGS
+	
 	if (surf_no >= SURFACE_ID_MAX)
-#else
-	if (surf_no > SURFACE_ID_MAX)
-#endif
 	{
 		ErrorLog("surface no", surf_no);
 		return FALSE;

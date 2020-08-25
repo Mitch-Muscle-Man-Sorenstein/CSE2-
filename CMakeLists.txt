@@ -162,18 +162,43 @@ add_executable(CSE2 WIN32
 	"src/ValueView.cpp"
 	"src/ValueView.h"
 	"src/WindowsWrapper.h"
+	"src/Music/FixedPoint.h"
 	"src/Music/Organya.cpp"
 	"src/Music/Organya.h"
+	"src/Music/stb_vorbis.cpp"
+	"src/Music/miniaudio.cpp"
+	"src/Music/miniaudio.h"
+	"src/Music/Ogg.cpp"
+	"src/Music/Ogg.h"
 	"src/Backends/Audio.h"
 	"src/Backends/Controller.h"
 	"src/Backends/Misc.h"
 	"src/Backends/Rendering.h"
 )
 
+target_include_directories(CSE2 PRIVATE "external")
+
 list(APPEND CMAKE_MODULE_PATH
 	"${CMAKE_SOURCE_DIR}/cmake"
 )
 
+##########################
+# miniaudio dependencies #
+##########################
+# Link libdl, libm, and libpthread
+include(CheckLibraryExists)
+
+check_library_exists(m pow "" LIBM)
+if(LIBM)
+	target_link_libraries(CSE2 PRIVATE m)
+endif()
+
+check_library_exists(pthread pthread_create "" LIBPTHREAD)
+if(LIBPTHREAD)
+	target_link_libraries(CSE2 PRIVATE pthread)
+endif()
+
+target_link_libraries(CSE2 PRIVATE ${CMAKE_DL_LIBS})
 
 ###################
 # Option handling #
@@ -315,42 +340,6 @@ if(NOT FORCE_LOCAL_LIBS)
 	find_package(PkgConfig QUIET)
 endif()
 
-if(BACKEND_PLATFORM MATCHES "GLFW3")
-	if(NOT FORCE_LOCAL_LIBS)
-		find_package(glfw3)
-
-		if (PKG_CONFIG_FOUND)
-			pkg_check_modules(glfw3 QUIET IMPORTED_TARGET glfw3)
-		endif()
-	endif()
-
-	if(TARGET PkgConfig::glfw3)
-		# pkg-config
-		if (PKG_CONFIG_STATIC_LIBS)
-			message(STATUS "Using system GLFW3 (pkg-config, static)")
-			target_compile_options(CSE2 PRIVATE ${glfw3_STATIC_CFLAGS})
-			target_link_libraries(CSE2 PRIVATE ${glfw3_STATIC_LDFLAGS})
-		else()
-			message(STATUS "Using system GLFW3 (pkg-config, dynamic)")
-			target_compile_options(CSE2 PRIVATE ${glfw3_CFLAGS})
-			target_link_libraries(CSE2 PRIVATE ${glfw3_LDFLAGS})
-		endif()
-	elseif(TARGET glfw)
-		# CMake
-		message(STATUS "Using system GLFW3 (CMake)")
-		target_link_libraries(CSE2 PRIVATE glfw)
-	else()
-		# Compile it ourselves
-		message(STATUS "Using local GLFW3")
-		set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "" FORCE)
-		set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "" FORCE)
-		set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "" FORCE)
-		set(GLFW_INSTALL OFF CACHE INTERNAL "" FORCE)
-		add_subdirectory("external/glfw" EXCLUDE_FROM_ALL)
-		target_link_libraries(CSE2 PRIVATE glfw)
-	endif()
-endif()
-
 if(BACKEND_PLATFORM MATCHES "SDL2" OR BACKEND_AUDIO MATCHES "SDL2")
 	if(NOT FORCE_LOCAL_LIBS)
 		find_package(SDL2 2.0.6)
@@ -394,60 +383,4 @@ if(BACKEND_PLATFORM MATCHES "SDL2" OR BACKEND_AUDIO MATCHES "SDL2")
 		add_subdirectory("external/SDL2" EXCLUDE_FROM_ALL)
 		target_link_libraries(CSE2 PRIVATE SDL2-static)
 	endif()
-endif()
-
-if(NOT FORCE_LOCAL_LIBS)
-	find_package(Freetype)
-
-	if (PKG_CONFIG_FOUND)
-		pkg_check_modules(freetype2 QUIET IMPORTED_TARGET freetype2)
-	endif()
-endif()
-
-if(TARGET PkgConfig::freetype2)
-	# pkg-config
-	if (PKG_CONFIG_STATIC_LIBS)
-		message(STATUS "Using system FreeType (pkg-config, static)")
-		target_compile_options(CSE2 PRIVATE ${freetype2_STATIC_CFLAGS})
-		target_link_libraries(CSE2 PRIVATE ${freetype2_STATIC_LDFLAGS})
-	else()
-		message(STATUS "Using system FreeType (pkg-config, dynamic)")
-		target_compile_options(CSE2 PRIVATE ${freetype2_CFLAGS})
-		target_link_libraries(CSE2 PRIVATE ${freetype2_LDFLAGS})
-	endif()
-elseif(FREETYPE_FOUND)
-	message(STATUS "Using system FreeType (CMake)")
-	target_include_directories(CSE2 PRIVATE ${FREETYPE_INCLUDE_DIRS})
-	target_link_libraries(CSE2 PRIVATE ${FREETYPE_LIBRARIES})
-else()
-	# Compile it ourselves
-	message(STATUS "Using local FreeType")
-	if(FORCE_LOCAL_LIBS)
-		set(CMAKE_DISABLE_FIND_PACKAGE_HarfBuzz ON CACHE INTERNAL "" FORCE)
-		set(CMAKE_DISABLE_FIND_PACKAGE_ZLIB ON CACHE INTERNAL "" FORCE)
-		set(CMAKE_DISABLE_FIND_PACKAGE_PNG ON CACHE INTERNAL "" FORCE)
-		set(CMAKE_DISABLE_FIND_PACKAGE_BZip2 ON CACHE INTERNAL "" FORCE)
-	endif()
-	add_subdirectory("external/freetype" EXCLUDE_FROM_ALL)
-	target_link_libraries(CSE2 PRIVATE freetype)
-endif()
-
-if(BACKEND_RENDERER MATCHES "OpenGL3")
-	add_subdirectory("external/glad" EXCLUDE_FROM_ALL)
-	target_link_libraries(CSE2 PRIVATE glad)
-endif()
-
-if(BACKEND_RENDERER MATCHES "OpenGLES2")
-	find_package(OpenGLES2 REQUIRED)
-	target_include_directories(CSE2 PRIVATE ${OPENGLES2_INCLUDE_DIR})
-	target_link_libraries(CSE2 PRIVATE ${OPENGLES2_LIBRARIES})
-endif()
-
-if(BACKEND_RENDERER MATCHES "OpenGL3" OR (BACKEND_PLATFORM MATCHES "GLFW3" AND BACKEND_RENDERER MATCHES "Software"))
-	if (CMAKE_VERSION GREATER_EQUAL 3.11)
-		cmake_policy(SET CMP0072 NEW)
-	endif()
-
-	find_package(OpenGL REQUIRED)
-	target_link_libraries(CSE2 PRIVATE OpenGL::GL)
 endif()

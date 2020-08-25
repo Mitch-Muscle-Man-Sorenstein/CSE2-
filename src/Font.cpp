@@ -12,7 +12,6 @@
 #include "Draw.h"
 #include "File.h"
 #include "Bitmap.h"
-#include "Backends/Rendering.h"
 
 #define MAX_PATH 0x104
 #define BITMAP_BPP 3
