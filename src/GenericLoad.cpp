@@ -160,77 +160,6 @@ PIXTONEPARAMETER gPtpTable[NUM_PXT] =
 	{1, 1000, {0, 20.0, 0, 0}, {0, 0.0, 0, 0}, {0, 0.0, 0, 0}, 0, 64, 0, 128, 0, 255, 0}
 };
 
-#define PIXTONE_TBL_ENTRY_SIZE 96
-
-#define PIXTONE_ADDR(address) (((address) - 0x4AEB38) / 84)
-
-void Swap64(uint64_t *v)
-{
-	uint64_t d = *v;
-	*v =
-		((d & 0xFF00000000000000) >> 56) |
-		((d & 0x00FF000000000000) >> 40) |
-		((d & 0x0000FF0000000000) >> 24) |
-		((d & 0x000000FF00000000) >>  8) |
-		((d & 0x00000000FF000000) <<  8) |
-		((d & 0x0000000000FF0000) << 24) |
-		((d & 0x000000000000FF00) << 40) |
-		((d & 0x00000000000000FF) << 56);
-}
-
-BOOL LoadPixTone()
-{
-	//Open PixTone table
-	std::string path = gDataPath + "/pixtone.tbl";
-	
-	FILE *fp = FindFile(path.c_str(), "rb");
-	if (fp == NULL)
-		return FALSE;
-	
-	PIXTONEPARAMETER *p = gPtpTable;
-	do
-	{
-		p->use = File_ReadLE32(fp);
-		p->size = File_ReadLE32(fp);
-		
-		p->oMain.model = File_ReadLE32(fp);
-		fread(&p->oMain.num, 8, 1, fp);
-		Swap64((uint64_t*)&p->oMain.num);
-		p->oMain.top = File_ReadLE32(fp);
-		p->oMain.offset = File_ReadLE32(fp);
-		
-		p->oPitch.model = File_ReadLE32(fp);
-		fread(&p->oPitch.num, 8, 1, fp);
-		Swap64((uint64_t*)&p->oPitch.num);
-		p->oPitch.top = File_ReadLE32(fp);
-		p->oPitch.offset = File_ReadLE32(fp);
-		
-		p->oVolume.model = File_ReadLE32(fp);
-		fread(&p->oVolume.num, 8, 1, fp);
-		Swap64((uint64_t*)&p->oVolume.num);
-		p->oVolume.top = File_ReadLE32(fp);
-		p->oVolume.offset = File_ReadLE32(fp);
-		
-		p->initial = File_ReadLE32(fp);
-		p->pointAx = File_ReadLE32(fp);
-		p->pointAy = File_ReadLE32(fp);
-		p->pointBx = File_ReadLE32(fp);
-		p->pointBy = File_ReadLE32(fp);
-		p->pointCx = File_ReadLE32(fp);
-		p->pointCy = File_ReadLE32(fp);
-		
-		p++;
-	} while (p < &gPtpTable[PIXTONE_ADDR(0x4B1884)]);
-	fclose(fp);
-	return TRUE;
-}
-
-
-void sub_489FD0(unsigned int address, int ptp_num, int no)
-{
-	MakePixToneObject(&gPtpTable[PIXTONE_ADDR(address)], ptp_num, no);
-}
-
 BOOL LoadGenericData(void)
 {
 	BOOL bError;
@@ -280,97 +209,95 @@ BOOL LoadGenericData(void)
 	MakeSurface_Generic(40, 240, SURFACE_ID_VALUE_VIEW, FALSE);
 	MakeSurface_Generic(320, 240, SURFACE_ID_LEVEL_SPRITESET_1, FALSE);
 	MakeSurface_Generic(320, 240, SURFACE_ID_LEVEL_SPRITESET_2, FALSE);
-
-	if (!LoadPixTone())
-		return FALSE;
-	sub_489FD0(0x4AEB38, 2, 32);
-	sub_489FD0(0x4AEBE0, 2, 33);
-	sub_489FD0(0x4AEC88, 2, 34);
-	sub_489FD0(0x4AED30, 1, 15);
-	sub_489FD0(0x4AED84, 1, 24);
-	sub_489FD0(0x4AEDD8, 1, 23);
-	sub_489FD0(0x4AEE2C, 2, 50);
-	sub_489FD0(0x4AEED4, 2, 51);
-	sub_489FD0(0x4AF60C, 1, 1);
-	sub_489FD0(0x4AF7B0, 1, 2);
-	sub_489FD0(0x4AFD98, 1, 29);
-	sub_489FD0(0x4AFF3C, 1, 43);
-	sub_489FD0(0x4AFF90, 3, 44);
-	sub_489FD0(0x4B008C, 1, 45);
-	sub_489FD0(0x4B00E0, 1, 46);
-	sub_489FD0(0x4B0188, 1, 47);
-	sub_489FD0(0x4AFB4C, 3, 35);
-	sub_489FD0(0x4AFC48, 3, 39);
-	sub_489FD0(0x4AEF7C, 2, 52);
-	sub_489FD0(0x4AF468, 2, 53);
-	sub_489FD0(0x4AF024, 2, 70);
-	sub_489FD0(0x4AF0CC, 2, 71);
-	sub_489FD0(0x4AF174, 2, 72);
-	sub_489FD0(0x4AF510, 1, 5);
-	sub_489FD0(0x4AF5B8, 1, 11);
-	sub_489FD0(0x4AF6B4, 1, 4);
-	sub_489FD0(0x4AFA50, 2, 25);
-	sub_489FD0(0x4AFAF8, 1, 27);
-	sub_489FD0(0x4AFCF0, 2, 28);
-	sub_489FD0(0x4AF804, 1, 14);
-	sub_489FD0(0x4AF2C4, 2, 16);
-	sub_489FD0(0x4AF36C, 3, 17);
-	sub_489FD0(0x4AF660, 1, 18);
-	sub_489FD0(0x4AF708, 2, 20);
-	sub_489FD0(0x4AF564, 1, 22);
-	sub_489FD0(0x4AF8AC, 2, 26);
-	sub_489FD0(0x4AF954, 1, 21);
-	sub_489FD0(0x4AF9A8, 2, 12);
-	sub_489FD0(0x4AFDEC, 2, 38);
-	sub_489FD0(0x4AFE94, 1, 31);
-	sub_489FD0(0x4AFEE8, 1, 42);
-	sub_489FD0(0x4B01DC, 1, 48);
-	sub_489FD0(0x4B0230, 2, 49);
-	sub_489FD0(0x4B02D8, 1, 100);
-	sub_489FD0(0x4B032C, 3, 101);
-	sub_489FD0(0x4B0428, 2, 54);
-	sub_489FD0(0x4B04D0, 2, 102);
-	sub_489FD0(0x4B0578, 2, 103);
-	sub_489FD0(0x4B05CC, 1, 104);
-	sub_489FD0(0x4B0620, 1, 105);
-	sub_489FD0(0x4B0674, 2, 106);
-	sub_489FD0(0x4B071C, 1, 107);
-	sub_489FD0(0x4B0770, 1, 30);
-	sub_489FD0(0x4B07C4, 1, 108);
-	sub_489FD0(0x4B0818, 1, 109);
-	sub_489FD0(0x4B086C, 1, 110);
-	sub_489FD0(0x4B08C0, 1, 111);
-	sub_489FD0(0x4B0914, 1, 112);
-	sub_489FD0(0x4B0968, 1, 113);
-	sub_489FD0(0x4B09BC, 2, 114);
-	sub_489FD0(0x4B0A64, 2, 150);
-	sub_489FD0(0x4B0B0C, 2, 151);
-	sub_489FD0(0x4B0BB4, 1, 152);
-	sub_489FD0(0x4B0C08, 1, 153);
-	sub_489FD0(0x4B0C5C, 2, 154);
-	sub_489FD0(0x4B0FA4, 2, 155);
-	sub_489FD0(0x4B0A64, 2, 156);
-	sub_489FD0(0x4B0A64, 2, 157);
-	sub_489FD0(0x4B0D04, 2, 56);
-	sub_489FD0(0x4B0DAC, 2, 40);
-	sub_489FD0(0x4B0DAC, 2, 41);
-	sub_489FD0(0x4B0E54, 2, 37);
-	sub_489FD0(0x4B0EFC, 2, 57);
-	sub_489FD0(0x4B104C, 3, 115);
-	sub_489FD0(0x4B1148, 1, 104);
-	sub_489FD0(0x4B119C, 3, 116);
-	sub_489FD0(0x4B1298, 2, 58);
-	sub_489FD0(0x4B1340, 2, 55);
-	sub_489FD0(0x4B13E8, 2, 117);
-	sub_489FD0(0x4B1490, 1, 59);
-	sub_489FD0(0x4B14E4, 1, 60);
-	sub_489FD0(0x4B1538, 1, 61);
-	sub_489FD0(0x4B158C, 2, 62);
-	sub_489FD0(0x4B1634, 2, 63);
-	sub_489FD0(0x4B16DC, 2, 64);
-	sub_489FD0(0x4B1784, 1, 65);
-	sub_489FD0(0x4B17D8, 1, 3);
-	sub_489FD0(0x4B182C, 1, 6);
-	sub_489FD0(0x4B1880, 1, 7);
+	
+	MakePixToneObject(&gPtpTable[0], 2, 32);
+	MakePixToneObject(&gPtpTable[2], 2, 33);
+	MakePixToneObject(&gPtpTable[4], 2, 34);
+	MakePixToneObject(&gPtpTable[6], 1, 15);
+	MakePixToneObject(&gPtpTable[7], 1, 24);
+	MakePixToneObject(&gPtpTable[8], 1, 23);
+	MakePixToneObject(&gPtpTable[9], 2, 50);
+	MakePixToneObject(&gPtpTable[11], 2, 51);
+	MakePixToneObject(&gPtpTable[33], 1, 1);
+	MakePixToneObject(&gPtpTable[38], 1, 2);
+	MakePixToneObject(&gPtpTable[56], 1, 29);
+	MakePixToneObject(&gPtpTable[61], 1, 43);
+	MakePixToneObject(&gPtpTable[62], 3, 44);
+	MakePixToneObject(&gPtpTable[65], 1, 45);
+	MakePixToneObject(&gPtpTable[66], 1, 46);
+	MakePixToneObject(&gPtpTable[68], 1, 47);
+	MakePixToneObject(&gPtpTable[49], 3, 35);
+	MakePixToneObject(&gPtpTable[52], 3, 39);
+	MakePixToneObject(&gPtpTable[13], 2, 52);
+	MakePixToneObject(&gPtpTable[28], 2, 53);
+	MakePixToneObject(&gPtpTable[15], 2, 70);
+	MakePixToneObject(&gPtpTable[17], 2, 71);
+	MakePixToneObject(&gPtpTable[19], 2, 72);
+	MakePixToneObject(&gPtpTable[30], 1, 5);
+	MakePixToneObject(&gPtpTable[32], 1, 11);
+	MakePixToneObject(&gPtpTable[35], 1, 4);
+	MakePixToneObject(&gPtpTable[46], 2, 25);
+	MakePixToneObject(&gPtpTable[48], 1, 27);
+	MakePixToneObject(&gPtpTable[54], 2, 28);
+	MakePixToneObject(&gPtpTable[39], 1, 14);
+	MakePixToneObject(&gPtpTable[23], 2, 16);
+	MakePixToneObject(&gPtpTable[25], 3, 17);
+	MakePixToneObject(&gPtpTable[34], 1, 18);
+	MakePixToneObject(&gPtpTable[36], 2, 20);
+	MakePixToneObject(&gPtpTable[31], 1, 22);
+	MakePixToneObject(&gPtpTable[41], 2, 26);
+	MakePixToneObject(&gPtpTable[43], 1, 21);
+	MakePixToneObject(&gPtpTable[44], 2, 12);
+	MakePixToneObject(&gPtpTable[57], 2, 38);
+	MakePixToneObject(&gPtpTable[59], 1, 31);
+	MakePixToneObject(&gPtpTable[60], 1, 42);
+	MakePixToneObject(&gPtpTable[69], 1, 48);
+	MakePixToneObject(&gPtpTable[70], 2, 49);
+	MakePixToneObject(&gPtpTable[72], 1, 100);
+	MakePixToneObject(&gPtpTable[73], 3, 101);
+	MakePixToneObject(&gPtpTable[76], 2, 54);
+	MakePixToneObject(&gPtpTable[78], 2, 102);
+	MakePixToneObject(&gPtpTable[80], 2, 103);
+	MakePixToneObject(&gPtpTable[81], 1, 104);
+	MakePixToneObject(&gPtpTable[82], 1, 105);
+	MakePixToneObject(&gPtpTable[83], 2, 106);
+	MakePixToneObject(&gPtpTable[85], 1, 107);
+	MakePixToneObject(&gPtpTable[86], 1, 30);
+	MakePixToneObject(&gPtpTable[87], 1, 108);
+	MakePixToneObject(&gPtpTable[88], 1, 109);
+	MakePixToneObject(&gPtpTable[89], 1, 110);
+	MakePixToneObject(&gPtpTable[90], 1, 111);
+	MakePixToneObject(&gPtpTable[91], 1, 112);
+	MakePixToneObject(&gPtpTable[92], 1, 113);
+	MakePixToneObject(&gPtpTable[93], 2, 114);
+	MakePixToneObject(&gPtpTable[95], 2, 150);
+	MakePixToneObject(&gPtpTable[97], 2, 151);
+	MakePixToneObject(&gPtpTable[99], 1, 152);
+	MakePixToneObject(&gPtpTable[100], 1, 153);
+	MakePixToneObject(&gPtpTable[101], 2, 154);
+	MakePixToneObject(&gPtpTable[111], 2, 155);
+	MakePixToneObject(&gPtpTable[95], 2, 156);
+	MakePixToneObject(&gPtpTable[97], 2, 157);
+	MakePixToneObject(&gPtpTable[103], 2, 56);
+	MakePixToneObject(&gPtpTable[105], 2, 40);
+	MakePixToneObject(&gPtpTable[105], 2, 41);
+	MakePixToneObject(&gPtpTable[107], 2, 37);
+	MakePixToneObject(&gPtpTable[109], 2, 57);
+	MakePixToneObject(&gPtpTable[113], 3, 115);
+	MakePixToneObject(&gPtpTable[116], 1, 104);
+	MakePixToneObject(&gPtpTable[117], 3, 116);
+	MakePixToneObject(&gPtpTable[120], 2, 58);
+	MakePixToneObject(&gPtpTable[122], 2, 55);
+	MakePixToneObject(&gPtpTable[124], 2, 117);
+	MakePixToneObject(&gPtpTable[126], 1, 59);
+	MakePixToneObject(&gPtpTable[127], 1, 60);
+	MakePixToneObject(&gPtpTable[128], 1, 61);
+	MakePixToneObject(&gPtpTable[129], 2, 62);
+	MakePixToneObject(&gPtpTable[131], 2, 63);
+	MakePixToneObject(&gPtpTable[133], 2, 64);
+	MakePixToneObject(&gPtpTable[135], 1, 65);
+	MakePixToneObject(&gPtpTable[136], 1, 3);
+	MakePixToneObject(&gPtpTable[137], 1, 6);
+	MakePixToneObject(&gPtpTable[138], 1, 7);
 	return TRUE;
 }

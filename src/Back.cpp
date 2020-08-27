@@ -108,53 +108,47 @@ void PutBack(int fx, int fy)
 		case 6:
 		case 7:
 		case 8:
-			#if (WINDOW_WIDTH == 320)
-				#define SKY_RIGHT 320
-			#else
-				#define SKY_RIGHT gBack.partsW
-			#endif
 			rect.top = 0;
 			rect.bottom = 88;
 			rect.left = 0;
-			rect.right = SKY_RIGHT;
+			rect.right = 320;
 			PutBitmap4(&grcGame, 0, 0, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			rect.top = 88;
 			rect.bottom = 123;
 			rect.left = gBack.fx / 2;
-			rect.right = SKY_RIGHT;
+			rect.right = 320;
 			PutBitmap4(&grcGame, 0, 88, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			rect.left = 0;
-			PutBitmap4(&grcGame, SKY_RIGHT - ((gBack.fx / 2) % SKY_RIGHT), 88, &rect, SURFACE_ID_LEVEL_BACKGROUND);
+			PutBitmap4(&grcGame, 320 - ((gBack.fx / 2) % 320), 88, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			rect.top = 123;
 			rect.bottom = 146;
 			rect.left = gBack.fx % 320;
-			rect.right = SKY_RIGHT;
+			rect.right = 320;
 			PutBitmap4(&grcGame, 0, 123, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			rect.left = 0;
-			PutBitmap4(&grcGame, SKY_RIGHT - (gBack.fx % SKY_RIGHT), 123, &rect, SURFACE_ID_LEVEL_BACKGROUND);
+			PutBitmap4(&grcGame, 320 - (gBack.fx % 320), 123, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			rect.top = 146;
 			rect.bottom = 176;
 			rect.left = 2 * gBack.fx % 320;
-			rect.right = SKY_RIGHT;
+			rect.right = 320;
 			PutBitmap4(&grcGame, 0, 146, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			rect.left = 0;
-			PutBitmap4(&grcGame, SKY_RIGHT - ((gBack.fx * 2) % SKY_RIGHT), 146, &rect, SURFACE_ID_LEVEL_BACKGROUND);
+			PutBitmap4(&grcGame, 320 - ((gBack.fx * 2) % 320), 146, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			rect.top = 176;
 			rect.bottom = 240;
 			rect.left = 4 * gBack.fx % 320;
-			rect.right = SKY_RIGHT;
+			rect.right = 320;
 			PutBitmap4(&grcGame, 0, 176, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			rect.left = 0;
-			PutBitmap4(&grcGame, SKY_RIGHT - ((gBack.fx * 4) % SKY_RIGHT), 176, &rect, SURFACE_ID_LEVEL_BACKGROUND);
-
+			PutBitmap4(&grcGame, 320 - ((gBack.fx * 4) % 320), 176, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 			break;
 	}
 }

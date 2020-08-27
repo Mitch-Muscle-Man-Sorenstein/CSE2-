@@ -147,7 +147,7 @@ class Music_Ogg : public Music
 		//Music interface
 		bool Load(const char *_name) override
 		{
-			std::string path = (gDataPath + "/SNES/" + _name);
+			std::string path = (gDataPath + "/Ogg/" + _name);
 			if (ogg.Load(path))
 			{
 				name = nullptr;

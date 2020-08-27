@@ -325,21 +325,13 @@ int main(int argc, char *argv[])
 void InactiveWindow(void)
 {
 	if (bActive)
-	{
 		bActive = FALSE;
-		//SetMusicFocused(false);
-		SleepNoise();
-	}
 }
 
 void ActiveWindow(void)
 {
 	if (!bActive)
-	{
 		bActive = TRUE;
-		//SetMusicFocused(true);
-		ResetNoise();
-	}
 }
 
 void JoystickProc(void);

@@ -108,20 +108,20 @@ bool Ogg::Stop()
 
 bool Ogg::SetPosition(uint32_t x)
 {
-	size_t i = 0;
-	while (x > data.decoder[i].length && i + 1 < data.decoder.size())
-		x -= data.decoder[i++].length;
+	size_t i;
+	for (i = 0; x >= data.decoder[i].length && i + 1 < data.decoder.size(); i++)
+		x -= data.decoder[i].length;
 	data.current_decoder = i;
-	stb_vorbis_seek_frame(data.decoder[i].decoder, x);
+	stb_vorbis_seek(data.decoder[i].decoder, x * data.channels);
 	return false;
 }
 
 uint32_t Ogg::GetPosition()
 {
-	size_t pre_pos = 0;
+	uint32_t pre_pos = 0;
 	for (size_t i = 0; i < data.current_decoder; i++)
 		pre_pos += data.decoder[i].length;
-	return pre_pos + stb_vorbis_get_sample_offset(data.decoder[data.current_decoder].decoder);
+	return pre_pos + stb_vorbis_get_sample_offset(data.decoder[data.current_decoder].decoder) / data.channels;
 }
 
 //Mixing interface
