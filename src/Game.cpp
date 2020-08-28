@@ -311,15 +311,9 @@ static int ModeTitle(void)
 	InitBack("bkMoon", 8);
 	
 	//Play music
-	StopMusic();
-	if (g_GameSeason == GS_Pixel && LoadMusic("ika"))
-	{
-		PlayMusic();
-	}
-	else
-	{
-		ChangeMusic(MUS_CAVE_STORY);
-	}
+	if (g_GameSeason != GS_Pixel || !LoadMusic("ika"))
+		LoadMusic("curly");
+	PlayMusic();
 	
 	//Reset cliprect
 	grcGame.left = 0;
@@ -463,19 +457,27 @@ static int ModeTitle(void)
 		//Get pressed keys
 		GetTrg();
 		
-		int next_type = gMusicType;
-		if (gKeyTrg & gKeyArmsRev)
+		if (gKeyTrg & (gKeyArms | gKeyArmsRev))
 		{
-			if (--next_type < MT_Organya)
-				next_type = MT_Ogg11;
+			int next_type = gMusicType;
+			if (gKeyTrg & gKeyArmsRev)
+			{
+				if (--next_type < MT_Organya)
+					next_type = MT_Ogg11;
+			}
+			else if (gKeyTrg & gKeyArms)
+			{
+				if (++next_type > MT_Ogg11)
+					next_type = MT_Organya;
+			}
+			
+			SetMusicType((MusicType)next_type);
+			
+			//Play music
+			if (g_GameSeason != GS_Pixel || !LoadMusic("ika"))
+				LoadMusic("curly");
+			PlayMusic();
 		}
-		else if (gKeyTrg & gKeyArms)
-		{
-			if (++next_type > MT_Ogg11)
-				next_type = MT_Organya;
-		}
-		
-		SetMusicType((MusicType)next_type);
 		
 		//Draw background
 		ActBack();

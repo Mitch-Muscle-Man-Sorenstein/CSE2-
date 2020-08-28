@@ -20,7 +20,7 @@ MusicType gMusicType;
 class Music
 {
 	protected:
-		const char *name = nullptr;
+		const char *name;
 		
 	public:
 		virtual ~Music() {}
@@ -55,7 +55,7 @@ class Music_Organya : public Music
 		//Constructor
 		Music_Organya()
 		{
-			//Initialize Organya
+			name = nullptr;
 			org.InitializeData();
 		}
 		
@@ -132,7 +132,7 @@ class Music_Organya : public Music
 		
 		void Mix(int32_t *stream, unsigned long frequency, size_t len) override
 		{
-			if (org.IsPlaying())
+			if (name && org.IsPlaying())
 				org.Mix(stream, frequency, len);
 		}
 };
@@ -149,7 +149,11 @@ class Music_Ogg : public Music
 		
 	public:
 		//Constructor
-		Music_Ogg(std::string _folder) { folder = _folder + '/'; }
+		Music_Ogg(std::string _folder)
+		{
+			name = nullptr;
+			folder = _folder + '/';
+		}
 		
 		//Music interface
 		bool Load(const char *_name) override
@@ -223,7 +227,7 @@ class Music_Ogg : public Music
 		
 		void Mix(int32_t *stream, unsigned long frequency, size_t len) override
 		{
-			if (ogg.IsPlaying())
+			if (name && ogg.IsPlaying())
 				ogg.Mix(stream, frequency, len);
 		}
 };
@@ -242,13 +246,8 @@ void SetMusicType(MusicType type)
 	{
 		AudioBackend_Lock();
 		
-		//Delete previous music class
-		const char *name = nullptr;
-		if (music != nullptr && music->IsPlaying())
-			name = music->GetName();
+		//Delete previous music class and create new one
 		delete music;
-		
-		//Create new music class
 		switch (gMusicType = type)
 		{
 			case MT_Organya:
@@ -263,13 +262,6 @@ void SetMusicType(MusicType type)
 			default:
 				music = nullptr;
 				break;
-		}
-		
-		//Play previous music
-		if (music != nullptr && name != nullptr)
-		{
-			if (!music->Load(name))
-				music->Play();
 		}
 		
 		AudioBackend_Unlock();

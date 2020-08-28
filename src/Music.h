@@ -7,7 +7,6 @@ enum MusicType
 	MT_Organya,
 	MT_Ogg,
 	MT_Ogg11,
-	MT_Null,
 };
 
 extern MusicType gMusicType;
