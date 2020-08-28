@@ -108,7 +108,6 @@ int main(int argc, char *argv[])
 	//Fallthrough
 		default:
 			g_GameSeason = GS_None;
-			g_GameSeason = GS_Pixel;
 			break;
 	}
 
