@@ -22,7 +22,12 @@ BOOL InitBack(const char *fName, int type)
 	color_black = GetCortBoxColor(RGB(0, 0, 0x10));
 
 	// Get width and height
-	FILE *fp = OpenFile(FSS_Mod, std::string(fName) + ".bmp", "rb");
+	std::string path;
+	if (gUseOriginalGraphics)
+		path = std::string("ogph/") + fName + ".bmp";
+	else
+		path = std::string(fName) + ".bmp";
+	FILE *fp = OpenFile(FSS_Mod, path, "rb");
 	if (fp == NULL)
 		return FALSE;
 
@@ -34,8 +39,16 @@ BOOL InitBack(const char *fName, int type)
 
 	fseek(fp, 18, SEEK_SET);
 
-	gBack.partsW = File_ReadLE32(fp) / 2;
-	gBack.partsH = File_ReadLE32(fp) / 2;
+	if (gUseOriginalGraphics)
+	{
+		gBack.partsW = File_ReadLE32(fp);
+		gBack.partsH = File_ReadLE32(fp);
+	}
+	else
+	{
+		gBack.partsW = File_ReadLE32(fp) / DRAW_SCALE;
+		gBack.partsH = File_ReadLE32(fp) / DRAW_SCALE;
+	}
 	fclose(fp);
 
 	// Set background stuff and load texture

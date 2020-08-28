@@ -170,9 +170,6 @@ void ActValueView(void)
 		if (++gVV[v].count < 32)
 			gVV[v].offset_y -= 0x100;
 
-		if (gVV[v].count > 72)
-			++gVV[v].rect.top;
-
 		if (gVV[v].count > 80)
 			gVV[v].flag = FALSE;
 	}

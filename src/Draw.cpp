@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <string>
+#include <iostream>
 
 #include "WindowsWrapper.h"
 
@@ -18,8 +19,6 @@
 #include "TextScr.h"
 #include "Main.h"
 
-#define DRAW_SCALE 2
-
 typedef enum SurfaceType
 {
 	SURFACE_SOURCE_NONE = 1,
@@ -29,6 +28,8 @@ typedef enum SurfaceType
 
 RECT grcGame = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 RECT grcFull = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+
+BOOL gUseOriginalGraphics = TRUE;
 
 static BOOL fullscreen;	// TODO - Not the original variable name
 
@@ -134,29 +135,17 @@ void ReleaseSurface(SurfaceID s)
 	memset(&surface_metadata[s], 0, sizeof(surface_metadata[0]));
 }
 
-static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, int width, int height, SurfaceID surf_no)
+static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, int width, int height, SurfaceID surf_no, BOOL original)
 {
-	// IF YOU WANT TO ADD HD SPRITES, THIS IS THE CODE YOU SHOULD EDIT
-	unsigned int pitch;
-	unsigned char *pixels = RenderBackend_LockSurface(surf[surf_no], &pitch, width, height);
-
-	if (pixels == NULL)
-		return FALSE;
-
-	if (1)
-	{
-		// Just copy the pixels the way they are
-		for (int y = 0; y < height; ++y)
-		{
-			const unsigned char *src_row = &image_buffer[y * width * 3];
-			unsigned char *dst_row = &pixels[y * pitch];
-
-			memcpy(dst_row, src_row, width * 3);
-		}
-	}
-	else
+	if (original)
 	{
 		// Upscale the bitmap to the game's internal resolution
+		unsigned int pitch;
+		unsigned char *pixels = RenderBackend_LockSurface(surf[surf_no], &pitch, width * DRAW_SCALE, height * DRAW_SCALE);
+
+		if (pixels == NULL)
+			return FALSE;
+		
 		for (int y = 0; y < height; ++y)
 		{
 			const unsigned char *src_row = &image_buffer[y * width * 3];
@@ -180,11 +169,30 @@ static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, int width, 
 			for (int i = 1; i < DRAW_SCALE; ++i)
 				memcpy(dst_row + i * pitch, dst_row, width * DRAW_SCALE * 3);
 		}
+		
+		RenderBackend_UnlockSurface(surf[surf_no], width * DRAW_SCALE, height * DRAW_SCALE);
+		return TRUE;
 	}
+	else
+	{
+		// Just copy the pixels the way they are
+		unsigned int pitch;
+		unsigned char *pixels = RenderBackend_LockSurface(surf[surf_no], &pitch, width, height);
 
-	RenderBackend_UnlockSurface(surf[surf_no], width, height);
+		if (pixels == NULL)
+			return FALSE;
+		
+		for (int y = 0; y < height; ++y)
+		{
+			const unsigned char *src_row = &image_buffer[y * width * 3];
+			unsigned char *dst_row = &pixels[y * pitch];
 
-	return TRUE;
+			memcpy(dst_row, src_row, width * 3);
+		}
+		
+		RenderBackend_UnlockSurface(surf[surf_no], width, height);
+		return TRUE;
+	}
 }
 
 // TODO - Inaccurate stack frame
@@ -207,17 +215,26 @@ BOOL MakeSurface_File(const char *name, SurfaceID surf_no)
 		ErrorLog("existing", surf_no);
 		return FALSE;
 	}
-
+	
 	unsigned int width, height;
-	unsigned char *image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string(name) + ".bmp").c_str(), &width, &height);
-
-	if (image_buffer == NULL)
+	unsigned char *image_buffer;
+	BOOL is_original;
+	
+	if (gUseOriginalGraphics && (image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string("ogph/") + name + ".bmp").c_str(), &width, &height)) != nullptr)
+	{
+		is_original = TRUE;
+		surf[surf_no] = RenderBackend_CreateSurface(width * DRAW_SCALE, height * DRAW_SCALE, false);
+	}
+	else if ((image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string(name) + ".bmp").c_str(), &width, &height)) != nullptr)
+	{
+		is_original = FALSE;
+		surf[surf_no] = RenderBackend_CreateSurface(width, height, false);
+	}
+	else
 	{
 		ErrorLog(name, 1);
 		return FALSE;
 	}
-
-	surf[surf_no] = RenderBackend_CreateSurface(width, height, false);
 
 	if (surf[surf_no] == NULL)
 	{
@@ -225,7 +242,7 @@ BOOL MakeSurface_File(const char *name, SurfaceID surf_no)
 		return FALSE;
 	}
 
-	if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no))
+	if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no, is_original))
 	{
 		RenderBackend_FreeSurface(surf[surf_no]);
 		FreeBitmap(image_buffer);
@@ -258,15 +275,24 @@ BOOL ReloadBitmap_File(const char *name, SurfaceID surf_no)
 	}
 
 	unsigned int width, height;
-	unsigned char *image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string(name) + ".bmp").c_str(), &width, &height);
-
-	if (image_buffer == NULL)
+	unsigned char *image_buffer;
+	BOOL is_original;
+	
+	if (gUseOriginalGraphics && (image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string("ogph/") + name + ".bmp").c_str(), &width, &height)) != nullptr)
+	{
+		is_original = TRUE;
+	}
+	else if ((image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string(name) + ".bmp").c_str(), &width, &height)) != nullptr)
+	{
+		is_original = FALSE;
+	}
+	else
 	{
 		ErrorLog(name, 1);
 		return FALSE;
 	}
 
-	if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no))
+	if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no, is_original))
 	{
 		FreeBitmap(image_buffer);
 		return FALSE;
@@ -282,11 +308,7 @@ BOOL ReloadBitmap_File(const char *name, SurfaceID surf_no)
 // TODO - Inaccurate stack frame
 BOOL MakeSurface_Generic(int bxsize, int bysize, SurfaceID surf_no, BOOL bSystem)
 {
-#ifdef FIX_BUGS
 	if (surf_no >= SURFACE_ID_MAX)
-#else
-	if (surf_no > SURFACE_ID_MAX)	// OOPS (should be '>=')
-#endif
 		return FALSE;
 
 	if (surf[surf_no] != NULL)

@@ -163,7 +163,7 @@ const char* const gMusicTable[42] = {
 	"ginsuke",
 	"cemetery",
 	"plant",
-	"koudou",
+	"kodou",
 	"fanfale3",
 	"fanfale2",
 	"dr",

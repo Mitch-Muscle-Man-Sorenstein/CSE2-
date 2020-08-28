@@ -2,6 +2,10 @@
 
 #include "WindowsWrapper.h"
 
+#define DRAW_SCALE 2
+
+extern BOOL gUseOriginalGraphics;
+
 extern RECT grcGame;
 extern RECT grcFull;
 
