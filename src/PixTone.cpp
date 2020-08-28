@@ -80,7 +80,6 @@ ATTRIBUTE_HOT BOOL MakePixelWaveData(const PIXTONEPARAMETER *ptp, unsigned char 
 
 	double d1, d2, d3;
 
-	// The Linux port added a cute optimisation here, where MakeWaveTables is only called once during the game's execution
 	if (wave_tables_made != TRUE)
 	{
 		MakeWaveTables();

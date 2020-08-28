@@ -78,6 +78,8 @@ add_executable(CSE2 WIN32
 	"src/Fade.h"
 	"src/File.cpp"
 	"src/File.h"
+	"src/Filesystem.cpp"
+	"src/Filesystem.h"
 	"src/Flags.cpp"
 	"src/Flags.h"
 	"src/Flash.cpp"
@@ -149,6 +151,7 @@ add_executable(CSE2 WIN32
 	"src/Shoot.h"
 	"src/Sound.cpp"
 	"src/Sound.h"
+	"src/Sound02.h"
 	"src/Stage.cpp"
 	"src/Stage.h"
 	"src/Star.cpp"
@@ -294,12 +297,6 @@ if(MSVC)
 	# Use `main` instead of `WinMain`
 	set_target_properties(CSE2 PROPERTIES LINK_FLAGS "/ENTRY:mainCRTStartup")
 endif()
-
-# On Windows, we use native icons instead
-if(NOT WIN32)
-	list(APPEND RESOURCES "ICON/ICON_MINI.bmp")
-endif()
-
 
 ##################
 # Misc. settings #

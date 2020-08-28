@@ -9,7 +9,7 @@
 #include "CommonDefines.h"
 #include "Draw.h"
 #include "File.h"
-#include "Main.h"
+#include "Filesystem.h"
 
 BACK gBack;
 int gWaterY;
@@ -22,9 +22,7 @@ BOOL InitBack(const char *fName, int type)
 	color_black = GetCortBoxColor(RGB(0, 0, 0x10));
 
 	// Get width and height
-	std::string path = gDataPath + '/' + fName + ".bmp";
-	
-	FILE *fp = FindFile(path.c_str(), "rb");
+	FILE *fp = OpenFile(FSS_Mod, std::string(fName) + ".bmp", "rb");
 	if (fp == NULL)
 		return FALSE;
 

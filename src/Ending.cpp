@@ -19,6 +19,7 @@
 #include "Stage.h"
 #include "TextScr.h"
 #include "File.h"
+#include "Filesystem.h"
 
 struct CREDIT
 {
@@ -172,7 +173,7 @@ void ReloadIllust(int a)
 	ReloadBitmap_Resource(name, SURFACE_ID_CREDITS_IMAGE);
 }
 
-const char *credit_script = "Credit.tsc";
+const char *credit_script = "credit.tsc";
 
 // Initialize and release credits
 void InitCreditScript(void)
@@ -206,7 +207,7 @@ BOOL StartCreditScript(void)
 	}
 
 	// Open file
-	path = gDataPath + '/' + credit_script;
+	path = FindFile(FSS_Mod, credit_script);
 
 	Credit.size = GetFileSizeLong(path.c_str());
 	if (Credit.size == -1)
@@ -217,7 +218,7 @@ BOOL StartCreditScript(void)
 	if (Credit.pData == NULL)
 		return FALSE;
 
-	fp = FindFile(path.c_str(), "rb");
+	fp = fopen(path.c_str(), "rb");
 	if (fp == NULL)
 	{
 		free(Credit.pData);

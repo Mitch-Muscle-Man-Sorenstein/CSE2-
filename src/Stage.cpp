@@ -20,6 +20,7 @@
 #include "Music.h"
 #include "TextScr.h"
 #include "ValueView.h"
+#include "Filesystem.h"
 
 #ifdef JAPANESE
 #define STAGE_ENTRY(parts, map, bkType, back, npc, boss, boss_no, name_en, name_jp) {parts, map, bkType, back, npc, boss, boss_no, name_jp}
@@ -36,9 +37,7 @@ STAGE_TABLE *gTMT = nullptr;
 
 BOOL LoadStageTable()
 {
-	std::string path = gDataPath + "/stage.tbl";
-	
-	FILE *fp = FindFile(path.c_str(), "rb");
+	FILE *fp = OpenFile(FSS_Mod, "stage.tbl", "rb");
 	if (!fp)
 		return FALSE;
 	
@@ -150,48 +149,48 @@ BOOL TransferStage(int no, int w, int x, int y)
 
 // Music
 const char* const gMusicTable[42] = {
-	"XXXX",
-	"WANPAKU",
-	"ANZEN",
-	"GAMEOVER",
-	"GRAVITY",
-	"WEED",
-	"MDOWN2",
-	"FIREEYE",
-	"VIVI",
-	"MURA",
-	"FANFALE1",
-	"GINSUKE",
-	"CEMETERY",
-	"PLANT",
-	"KODOU",
-	"FANFALE3",
-	"FANFALE2",
-	"DR",
-	"ESCAPE",
-	"JENKA",
-	"MAZE",
-	"ACCESS",
-	"IRONH",
-	"GRAND",
-	"CURLY",
-	"OSIDE",
-	"REQUIEM",
-	"WANPAK2",
-	"QUIET",
-	"LASTCAVE",
-	"BALCONY",
-	"LASTBTL",
-	"LASTBT3",
-	"ENDING",
-	"ZONBIE",
-	"BDOWN",
-	"HELL",
-	"JENKA2",
-	"MARINE",
-	"BALLOS",
-	"TOROKO",
-	"WHITE"
+	"xxxx",
+	"wanpaku",
+	"anzen",
+	"gameover",
+	"gravity",
+	"weed",
+	"mdown2",
+	"fireeye",
+	"vivi",
+	"mura",
+	"fanfale1",
+	"ginsuke",
+	"cemetery",
+	"plant",
+	"koudou",
+	"fanfale3",
+	"fanfale2",
+	"dr",
+	"escape",
+	"jenka",
+	"maze",
+	"access",
+	"ironh",
+	"grand",
+	"curly",
+	"oside",
+	"requiem",
+	"wanpak2",
+	"quiet",
+	"lastcave",
+	"balcony",
+	"lastbtl",
+	"lastbt3",
+	"ending",
+	"zonbie",
+	"bdown",
+	"hell",
+	"jenka2",
+	"marine",
+	"ballos",
+	"toroko",
+	"white"
 };
 
 void ChangeMusic(MusicID no)

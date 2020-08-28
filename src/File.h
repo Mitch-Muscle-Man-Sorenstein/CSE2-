@@ -4,9 +4,6 @@
 #include <stdio.h>
 #include <string>
 
-std::string FindFilePath(const char *path);
-FILE *FindFile(const char *path, const char *type);
-
 unsigned char* LoadFileToMemory(const char *file_path, size_t *file_size);
 
 unsigned short File_ReadBE16(FILE *stream);

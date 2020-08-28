@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string>
 
 #include "WindowsWrapper.h"
 
@@ -13,7 +14,6 @@
 #include "File.h"
 #include "Bitmap.h"
 
-#define MAX_PATH 0x104
 #define BITMAP_BPP 3
 
 //Bitmap font structures
@@ -97,7 +97,7 @@ struct FontObject
 	BMF_KerningPairs *blockKerningPairs;
 	
 	//Font data
-	char pagePath[MAX_PATH*2];
+	std::string pagePath;
 	RenderBackend_Surface **pages;
 };
 
@@ -121,19 +121,15 @@ FontObject* LoadFont(const char *font_filename, unsigned int cell_width, unsigne
 		memset(font_object, 0, sizeof(FontObject));
 		
 		//Get the path that holds the .fnt file
-		strcpy(font_object->pagePath, font_filename);
-		
-		size_t len;
-		while ((len = strlen(font_object->pagePath)) > 0)
-		{
-			if (font_object->pagePath[len - 1] != '\\' && font_object->pagePath[len - 1] != '/')
-				font_object->pagePath[len - 1] = '\0';
-			else
-				break;
-		}
+		std::string pagePath = std::string(font_filename);
+		size_t last_pos = pagePath.find_last_of("/\\");
+		if (last_pos != std::string::npos)
+			font_object->pagePath = pagePath.substr(0, last_pos + 1);
+		else
+			font_object->pagePath = "";
 		
 		//Open file
-		FILE *fp = FindFile(font_filename, "rb");
+		FILE *fp = fopen(font_filename, "rb");
 			
 		if (fp != NULL)
 		{
@@ -338,11 +334,10 @@ FontObject* LoadFont(const char *font_filename, unsigned int cell_width, unsigne
 					for (size_t i = 0; i < font_object->blockCommon->pages; i++)
 					{
 						//Attempt to load the page as a bitmap
-						char path[MAX_PATH*2];
-						sprintf(path, "%s%s", font_object->pagePath, font_object->blockPages->pageNames[i]);
+						std::string path = font_object->pagePath + font_object->blockPages->pageNames[i];
 						
 						unsigned int width, height;
-						unsigned char *image_buffer = DecodeBitmapFromFile(path, &width, &height);
+						unsigned char *image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height);
 						
 						if (image_buffer != NULL)
 						{
@@ -398,11 +393,10 @@ void RestoreFontSurfaces(FontObject *font_object)
 			if (font_object->pages[i] != NULL)
 			{
 				//Attempt to load the page as a bitmap
-				char path[MAX_PATH*2+1];
-				sprintf(path, "%s/%s", font_object->pagePath, font_object->blockPages->pageNames[i]);
+				std::string path = font_object->pagePath + font_object->blockPages->pageNames[i];
 				
 				unsigned int width, height;
-				unsigned char *image_buffer = DecodeBitmapFromFile(path, &width, &height);
+				unsigned char *image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height);
 				
 				if (image_buffer != NULL)
 				{

@@ -13,6 +13,7 @@
 #include "File.h"
 #include "Main.h"
 #include "NpChar.h"
+#include "Filesystem.h"
 
 #define PXM_BUFFER_SIZE 0x4B000
 
@@ -30,13 +31,9 @@ BOOL LoadMapData2(const char *path_map)
 {
 	FILE *fp;
 	char check[3];
-	std::string path;
-
-	// Get path
-	path = gDataPath + '/' + path_map;
-
+	
 	// Open file
-	fp = FindFile(path.c_str(), "rb");
+	fp = OpenFile(FSS_Mod, path_map, "rb");
 	if (fp == NULL)
 		return FALSE;
 
@@ -70,12 +67,9 @@ BOOL LoadMapData2(const char *path_map)
 BOOL LoadAttributeData(const char *path_atrb)
 {
 	FILE *fp;
-	std::string path;
-
+	
 	// Open file
-	path = gDataPath + '/' + path_atrb;
-
-	fp = FindFile(path.c_str(), "rb");
+	fp = OpenFile(FSS_Mod, path_atrb, "rb");
 	if (fp == NULL)
 		return FALSE;
 

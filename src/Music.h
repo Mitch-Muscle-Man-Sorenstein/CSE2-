@@ -2,7 +2,19 @@
 #include "WindowsWrapper.h"
 #include <stddef.h>
 
+enum MusicType
+{
+	MT_Organya,
+	MT_Ogg,
+	MT_Ogg11,
+	MT_Null,
+};
+
+extern MusicType gMusicType;
+
 void Music_Callback(long *stream, unsigned long frequency, size_t len);
+
+void SetMusicType(MusicType type);
 
 BOOL LoadMusic(const char *name);
 

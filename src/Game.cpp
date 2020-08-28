@@ -29,6 +29,7 @@
 #include "Map.h"
 #include "MapName.h"
 #include "MiniMap.h"
+#include "Music.h"
 #include "MyChar.h"
 #include "MycHit.h"
 #include "MycParam.h"
@@ -45,6 +46,7 @@
 #include "TextScr.h"
 #include "Title.h"
 #include "ValueView.h"
+#include "Filesystem.h"
 
 GameDifficulty g_GameDifficulty;
 
@@ -309,7 +311,15 @@ static int ModeTitle(void)
 	InitBack("bkMoon", 8);
 	
 	//Play music
-	ChangeMusic(MUS_CAVE_STORY);
+	StopMusic();
+	if (g_GameSeason == GS_Pixel && LoadMusic("ika"))
+	{
+		PlayMusic();
+	}
+	else
+	{
+		ChangeMusic(MUS_CAVE_STORY);
+	}
 	
 	//Reset cliprect
 	grcGame.left = 0;
@@ -407,7 +417,7 @@ static int ModeTitle(void)
 		DMID_Cancel,
 	};
 	
-	static const MenuEntry delete_menu[] = {
+	MenuEntry delete_menu[] = {
 		{TRUE, &hasSave["0"]},
 		{TRUE, &hasSave["1"]},
 		{TRUE, &hasSave["2"]},
@@ -452,6 +462,20 @@ static int ModeTitle(void)
 	{
 		//Get pressed keys
 		GetTrg();
+		
+		int next_type = gMusicType;
+		if (gKeyTrg & gKeyArmsRev)
+		{
+			if (--next_type < MT_Organya)
+				next_type = MT_Ogg11;
+		}
+		else if (gKeyTrg & gKeyArms)
+		{
+			if (++next_type > MT_Ogg11)
+				next_type = MT_Organya;
+		}
+		
+		SetMusicType((MusicType)next_type);
 		
 		//Draw background
 		ActBack();
@@ -1031,9 +1055,7 @@ BOOL Game(void)
 		return FALSE;
 	}
 
-	std::string path = gDataPath + "/npc.tbl";
-
-	if (!LoadNpcTable(path.c_str()))
+	if (!LoadNpcTable(FindFile(FSS_Mod, "npc.tbl").c_str()))
 	{
 #ifdef JAPANESE
 		Backend_ShowMessageBox("エラー", "NPCテーブルが読めない");

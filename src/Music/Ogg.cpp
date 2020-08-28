@@ -1,5 +1,6 @@
 #include "Ogg.h"
 #include "../File.h"
+#include "../Filesystem.h"
 
 //Resampler callback
 ma_uint32 MusicResampleCallback(ma_pcm_converter *dsp, void *buffer, ma_uint32 frames, void *userdata)
@@ -67,41 +68,43 @@ bool Ogg::LoadTrack(FILE *file)
 
 bool Ogg::Load(std::string name)
 {
-	//Reset state
-	playing = false;
-	
 	//Close previous decoders
 	data.CloseDecoders();
 	
 	//Open new decoders
-	if (LoadTrack(FindFile((name + "_intro.ogg").c_str(), "rb")))
+	if (LoadTrack(OpenFile(FSS_Mod, (name + "_intro.ogg").c_str(), "rb")))
 	{
-		if (LoadTrack(FindFile((name + ".ogg").c_str(), "rb")))
+		if (LoadTrack(OpenFile(FSS_Mod, (name + ".ogg").c_str(), "rb")))
 			return true;
 	}
 	else 
 	{
-		if (LoadTrack(FindFile((name + "_loop.ogg").c_str(), "rb")))
+		if (LoadTrack(OpenFile(FSS_Mod, (name + "_loop.ogg").c_str(), "rb")))
 			return true;
 	}
 	
 	//Initialize resampler
 	config = ma_pcm_converter_config_init(ma_format_s16, data.channels, data.frequency, ma_format_s16, 2, 0, MusicResampleCallback, (void*)&data);
+	
+	//Reset state
+	playing = false;
+	volume = 100;
+	fading = false;
 	return false;
 }
 
 //Ogg interface
 bool Ogg::Play()
 {
+	//Start playing
 	playing = true;
-	volume = 100;
-	fading = false;
 	fade_counter = 0;
 	return false;
 }
 
 bool Ogg::Stop()
 {
+	//Stop playing
 	playing = false;
 	return false;
 }

@@ -13,9 +13,10 @@
 #include "Ending.h"
 #include "Font.h"
 #include "Generic.h"
-#include "Main.h"
+#include "Filesystem.h"
 #include "MapName.h"
 #include "TextScr.h"
+#include "Main.h"
 
 #define DRAW_SCALE 2
 
@@ -195,8 +196,6 @@ BOOL MakeSurface_Resource(const char *name, SurfaceID surf_no)
 // TODO - Inaccurate stack frame
 BOOL MakeSurface_File(const char *name, SurfaceID surf_no)
 {
-	std::string path = gDataPath + '/' + name + ".bmp";
-
 	if (surf_no >= SURFACE_ID_MAX)
 	{
 		ErrorLog("surface no", surf_no);
@@ -210,11 +209,11 @@ BOOL MakeSurface_File(const char *name, SurfaceID surf_no)
 	}
 
 	unsigned int width, height;
-	unsigned char *image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height);
+	unsigned char *image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string(name) + ".bmp").c_str(), &width, &height);
 
 	if (image_buffer == NULL)
 	{
-		ErrorLog(path.c_str(), 1);
+		ErrorLog(name, 1);
 		return FALSE;
 	}
 
@@ -252,8 +251,6 @@ BOOL ReloadBitmap_Resource(const char *name, SurfaceID surf_no)
 // TODO - Inaccurate stack frame
 BOOL ReloadBitmap_File(const char *name, SurfaceID surf_no)
 {
-	std::string path = gDataPath + '/' + name + ".bmp";
-	
 	if (surf_no >= SURFACE_ID_MAX)
 	{
 		ErrorLog("surface no", surf_no);
@@ -261,11 +258,11 @@ BOOL ReloadBitmap_File(const char *name, SurfaceID surf_no)
 	}
 
 	unsigned int width, height;
-	unsigned char *image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height);
+	unsigned char *image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string(name) + ".bmp").c_str(), &width, &height);
 
 	if (image_buffer == NULL)
 	{
-		ErrorLog(path.c_str(), 1);
+		ErrorLog(name, 1);
 		return FALSE;
 	}
 
@@ -545,8 +542,6 @@ int RestoreSurfaces(void)
 // TODO - Inaccurate stack frame
 void InitTextObject(const char *name)
 {
-	std::string path = gDataPath + "/" + name;
-
 	// Get font size
 	unsigned int width, height;
 
@@ -575,7 +570,7 @@ void InitTextObject(const char *name)
 #endif
 	}
 
-	font = LoadFont(path.c_str(), width, height);
+	font = LoadFont(FindFile(FSS_Mod, name).c_str(), width, height);
 }
 
 unsigned int GetTextWidth(const char *text)

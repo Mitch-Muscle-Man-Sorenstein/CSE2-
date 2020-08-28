@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <time.h>
 
 #include "WindowsWrapper.h"
 
@@ -21,9 +22,9 @@
 #include "Sound.h"
 #include "Triangle.h"
 #include "File.h"
+#include "Filesystem.h"
 
-std::string gModulePath;
-std::string gDataPath;
+GameSeason g_GameSeason;
 
 BOOL bFullscreen;
 BOOL gbUseJoystick = FALSE;
@@ -84,26 +85,49 @@ int main(int argc, char *argv[])
 
 	if (!Backend_Init())
 		return EXIT_FAILURE;
-
-	// Get executable's path
-	if (!Backend_GetBasePath(&gModulePath))
+	
+	//Get game season
+	time_t now;
+	time(&now);
+	struct tm *timeinfo = localtime(&now);
+	
+	switch (1 + timeinfo->tm_mon)
 	{
-		// Fall back on argv[0] if the backend cannot provide a path
-		gModulePath = argv[0];
-
-		for (size_t i = gModulePath.length();; --i)
-		{
-			if (i == 0 || gModulePath[i] == '\\' || gModulePath[i] == '/')
+		case 10:
+			g_GameSeason = GS_Halloween;
+			break;
+		case 12:
+			g_GameSeason = GS_Christmas;
+			break;
+		case 4:
+			if (timeinfo->tm_mday == 29)
 			{
-				gModulePath.resize(i);
+				g_GameSeason = GS_Pixel;
 				break;
 			}
-		}
+	//Fallthrough
+		default:
+			g_GameSeason = GS_None;
 	}
 
+	// Get executable's path
+	std::string modulePath;
+	if (!Backend_GetBasePath(&modulePath))
+	{
+		// Fall back on argv[0] if the backend cannot provide a path
+		modulePath = argv[0];
+		size_t last_pos = modulePath.find_last_of("/\\");
+		if (last_pos != std::string::npos)
+			modulePath = modulePath.substr(0, last_pos + 1);
+		else
+			modulePath = ".";
+	}
+	
+	// Initialize filesystem
+	if (!InitFilesystem(modulePath))
+		return EXIT_FAILURE;
+	
 	// Get path of the data folder
-	gDataPath = gModulePath + "/data/base";
-
 	CONFIG conf;
 	if (!LoadConfigData(&conf))
 		DefaultConfigData(&conf);
@@ -250,27 +274,31 @@ int main(int argc, char *argv[])
 	}
 
 	// Set up window icon
-	FILE *window_icon_resource = FindFile((gModulePath + "/data/icon.bmp").c_str(), "rb");
-	fseek(window_icon_resource, 0, SEEK_END);
-	size_t window_icon_resource_size = ftell(window_icon_resource);
-	fseek(window_icon_resource, 0, SEEK_SET);
-	
-	uint8_t *window_icon_resource_data = new uint8_t[window_icon_resource_size];
-	fread(window_icon_resource_data, window_icon_resource_size, 1, window_icon_resource);
-	
-	if (window_icon_resource_data != NULL)
+	FILE *window_icon_resource = OpenFile(FSS_Module, "data/icon.bmp", "rb");
+	if (window_icon_resource)
 	{
-		unsigned int window_icon_width, window_icon_height;
-		unsigned char *window_icon_rgb_pixels = DecodeBitmap(window_icon_resource_data, window_icon_resource_size, &window_icon_width, &window_icon_height);
-
-		if (window_icon_rgb_pixels != NULL)
+		fseek(window_icon_resource, 0, SEEK_END);
+		size_t window_icon_resource_size = ftell(window_icon_resource);
+		fseek(window_icon_resource, 0, SEEK_SET);
+		
+		uint8_t *window_icon_resource_data = new uint8_t[window_icon_resource_size];
+		fread(window_icon_resource_data, window_icon_resource_size, 1, window_icon_resource);
+		
+		if (window_icon_resource_data != NULL)
 		{
-			Backend_SetWindowIcon(window_icon_rgb_pixels, window_icon_width, window_icon_height);
-			FreeBitmap(window_icon_rgb_pixels);
+			unsigned int window_icon_width, window_icon_height;
+			unsigned char *window_icon_rgb_pixels = DecodeBitmap(window_icon_resource_data, window_icon_resource_size, &window_icon_width, &window_icon_height);
+
+			if (window_icon_rgb_pixels != NULL)
+			{
+				Backend_SetWindowIcon(window_icon_rgb_pixels, window_icon_width, window_icon_height);
+				FreeBitmap(window_icon_rgb_pixels);
+			}
 		}
+		
+		fclose(window_icon_resource);
+		delete[] window_icon_resource_data;
 	}
-	
-	delete[] window_icon_resource_data;
 
 	if (IsKeyFile("fps"))
 		bFPS = TRUE;

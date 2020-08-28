@@ -6,11 +6,15 @@
 
 #include "Main.h"
 #include "File.h"
+#include "Filesystem.h"
 #include "Sound.h"
 #include "Backends/Audio.h"
 
 #include "Music/Organya.h"
 #include "Music/Ogg.h"
+
+//Music type
+MusicType gMusicType;
 
 //Music base class
 class Music
@@ -58,7 +62,7 @@ class Music_Organya : public Music
 		//Music interface
 		bool Load(const char *_name) override
 		{
-			std::string path = FindFilePath((gDataPath + "/Org/" + _name + ".org").c_str());
+			std::string path = FindFile(FSS_Mod, std::string("Org/") + _name + ".org");
 			if (org.Load(path))
 			{
 				name = nullptr;
@@ -133,22 +137,24 @@ class Music_Organya : public Music
 		}
 };
 
-//Ogg music class
+//Ogg base music class
 class Music_Ogg : public Music
 {
 	private:
 		//Ogg
 		Ogg ogg;
 		
+		//Music folder
+		std::string folder;
+		
 	public:
 		//Constructor
-		Music_Ogg() {}
+		Music_Ogg(std::string _folder) { folder = _folder + '/'; }
 		
 		//Music interface
 		bool Load(const char *_name) override
 		{
-			std::string path = (gDataPath + "/Ogg/" + _name);
-			if (ogg.Load(path))
+			if (ogg.Load(folder + _name))
 			{
 				name = nullptr;
 				return true;
@@ -230,23 +236,65 @@ void Music_Callback(int32_t *stream, unsigned long frequency, size_t len)
 	music->Mix(stream, frequency, len);
 }
 
+void SetMusicType(MusicType type)
+{
+	if (type != gMusicType)
+	{
+		AudioBackend_Lock();
+		
+		//Delete previous music class
+		const char *name = nullptr;
+		if (music != nullptr && music->IsPlaying())
+			name = music->GetName();
+		delete music;
+		
+		//Create new music class
+		switch (gMusicType = type)
+		{
+			case MT_Organya:
+				music = new Music_Organya();
+				break;
+			case MT_Ogg:
+				music = new Music_Ogg("Ogg");
+				break;
+			case MT_Ogg11:
+				music = new Music_Ogg("Ogg11");
+				break;
+			default:
+				music = nullptr;
+				break;
+		}
+		
+		//Play previous music
+		if (music != nullptr && name != nullptr)
+		{
+			if (!music->Load(name))
+				music->Play();
+		}
+		
+		AudioBackend_Unlock();
+	}
+}
+
 BOOL LoadMusic(const char *name)
 {
 	AudioBackend_Lock();
+	
+	//Load given song
 	if (music->Load(name))
 	{
 		AudioBackend_Unlock();
 		return FALSE;
 	}
+	
 	AudioBackend_Unlock();
 	return TRUE;
 }
 
 BOOL StartMusic()
 {
-	//Create music to use
-	if ((music = new Music_Ogg()) == nullptr)
-		return FALSE;
+	//Set music type
+	SetMusicType(MT_Ogg11);
 	
 	//Set music callback
 	AudioBackend_SetMusicCallback(Music_Callback);

@@ -25,6 +25,7 @@
 #include "Stage.h"
 #include "Star.h"
 #include "ValueView.h"
+#include "Filesystem.h"
 
 const char* const gDefaultName = "Profile";
 const char* const gDefaultExt = ".dat";
@@ -33,14 +34,14 @@ std::string gProfileId;
 
 std::string GetProfilePath(std::string id)
 {
-	return gModulePath + '/' + gDefaultName + id + gDefaultExt;
+	return FindFile(FSS_Module, gDefaultName + id + gDefaultExt);
 }
 
 BOOL GetProfile(std::string id, PROFILE *profile)
 {
 	//Open file
 	std::string path = GetProfilePath(id);
-	FILE *fp = FindFile(path.c_str(), "rb");
+	FILE *fp = fopen(path.c_str(), "rb");
 	if (fp == NULL)
 		return FALSE;
 	
@@ -89,9 +90,9 @@ BOOL GetProfile(std::string id, PROFILE *profile)
 	
 	//Get profile's time of modification (TEMP)
 	struct stat attrib;
-	stat(FindFilePath(path.c_str()).c_str(), &attrib);
+	stat(path.c_str(), &attrib);
 	struct tm *timeinfo = localtime(&attrib.st_mtime);
-	sprintf(profile->time, "%02d/%02d/%04d %02d:%02d%s", timeinfo->tm_mon, timeinfo->tm_mday, 1900 + timeinfo->tm_year, (timeinfo->tm_hour % 12) ? (timeinfo->tm_hour % 12) : 12, timeinfo->tm_min, timeinfo->tm_hour >= 12 ? "PM" : "AM");
+	sprintf(profile->time, "%02d/%02d/%04d %02d:%02d%s", 1 + timeinfo->tm_mon, timeinfo->tm_mday, 1900 + timeinfo->tm_year, (timeinfo->tm_hour % 12) ? (timeinfo->tm_hour % 12) : 12, timeinfo->tm_min, timeinfo->tm_hour >= 12 ? "PM" : "AM");
 	return TRUE;
 }
 
@@ -103,7 +104,7 @@ BOOL SaveProfile(std::string id)
 
 	// Open file
 	std::string path = GetProfilePath(id);
-	fp = FindFile(path.c_str(), "wb");
+	fp = fopen(path.c_str(), "wb");
 	if (fp == NULL)
 		return FALSE;
 

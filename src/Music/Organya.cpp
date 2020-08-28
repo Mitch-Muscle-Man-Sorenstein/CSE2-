@@ -3,7 +3,7 @@
 #include <iostream>
 
 //Cave Story
-#include "../Main.h"
+#include "../Filesystem.h"
 #include "../File.h"
 
 //Declaration
@@ -429,7 +429,7 @@ namespace Organya
 	bool Instance::InitializeData()
 	{
 		//Open and read waveforms
-		FILE *fp = FindFile((gDataPath + "/wave.dat").c_str(), "rb");
+		FILE *fp = OpenFile(FSS_Mod, "wave.dat", "rb");
 		if (!fp)
 			return true;
 		
@@ -551,7 +551,9 @@ namespace Organya
 			if (ReadEvents(stream, i, *note_num_p++))
 				return true;
 		
-		//Start at position 0
+		//Reset state
+		volume = 100;
+		fading = false;
 		SetPosition(0);
 		return false;
 	}
@@ -597,11 +599,13 @@ namespace Organya
 		for (auto &i : melody)
 		{
 			i.SetPosition(x);
+			i.SetVolume(volume);
 			i.GetState();
 		}
 		for (auto &i : drum)
 		{
 			i.SetPosition(x);
+			i.SetVolume(volume);
 			i.GetState();
 		}
 		
@@ -616,8 +620,6 @@ namespace Organya
 		{
 			//Start playing
 			playing = true;
-			volume = 100;
-			fading = false;
 			SetPosition(x);
 		}
 		return false;

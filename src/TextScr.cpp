@@ -37,6 +37,7 @@
 #include "Sound.h"
 #include "Stage.h"
 #include "File.h"
+#include "Filesystem.h"
 
 // This limits the size of a .tsc script to 0x5000 bytes (the game will crash above this)
 #define TSC_BUFFER_SIZE 0x5000
@@ -127,14 +128,14 @@ BOOL LoadTextScript2(const char *name)
 	std::string path;
 
 	// Get path
-	path = gDataPath + '/' + name;
+	path = FindFile(FSS_Mod, name);
 
 	gTS.size = GetFileSizeLong(path.c_str());
 	if (gTS.size == -1)
 		return FALSE;
 
 	// Open file
-	fp = FindFile(path.c_str(), "rb");
+	fp = fopen(path.c_str(), "rb");
 	if (fp == NULL)
 		return FALSE;
 
@@ -161,7 +162,7 @@ BOOL LoadTextScript_Stage(const char *name)
 	long body_size;
 
 	// Open Head.tsc
-	path = gDataPath + "/Head.tsc";
+	path = FindFile(FSS_Mod, "Head.tsc");
 
 	head_size = GetFileSizeLong(path.c_str());
 	if (head_size == -1)
@@ -172,7 +173,7 @@ BOOL LoadTextScript_Stage(const char *name)
 	if (head_size > TSC_BUFFER_SIZE)
 		return FALSE;
 
-	fp = FindFile(path.c_str(), "rb");
+	fp = fopen(path.c_str(), "rb");
 	if (fp == NULL)
 		return FALSE;
 
@@ -183,7 +184,7 @@ BOOL LoadTextScript_Stage(const char *name)
 	fclose(fp);
 
 	// Open stage's .tsc
-	path = gDataPath + '/' + name;
+	path = FindFile(FSS_Mod, name);
 
 	body_size = GetFileSizeLong(path.c_str());
 	if (body_size == -1)
@@ -193,7 +194,7 @@ BOOL LoadTextScript_Stage(const char *name)
 	if (head_size + body_size > TSC_BUFFER_SIZE)
 		return FALSE;
 
-	fp = FindFile(path.c_str(), "rb");
+	fp = fopen(path.c_str(), "rb");
 	if (fp == NULL)
 		return FALSE;
 

@@ -18,6 +18,7 @@
 #include "Sound.h"
 #include "TextScr.h"
 #include "ValueView.h"
+#include "Filesystem.h"
 
 ARMS_LEVEL gArmsLevelTable[14] =
 {
@@ -433,17 +434,13 @@ BOOL SaveTimeCounter(void)
 	int i;
 	unsigned char p[4];
 	REC rec;
-	FILE *fp;
-	std::string path;
-
+	
 	// Quit if player doesn't have the Nikumaru Counter
 	if (!(gMC.equip & EQUIP_NIKUMARU_COUNTER))
 		return TRUE;
 
 	// Get last time
-	path = gModulePath + "/290.rec";
-
-	fp = FindFile(path.c_str(), "rb");
+	FILE *fp = OpenFile(FSS_Module, "290.rec", "rb");
 	if (fp != NULL)
 	{
 		// Read data
@@ -483,7 +480,7 @@ BOOL SaveTimeCounter(void)
 		rec.counter[i] = p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24);
 	}
 
-	fp = FindFile(path.c_str(), "wb");
+	fp = OpenFile(FSS_Module, "290.rec", "wb");
 	if (fp == NULL)
 		return FALSE;
 
@@ -505,13 +502,9 @@ int LoadTimeCounter(void)
 	int i;
 	unsigned char p[4];
 	REC rec;
-	FILE *fp;
-	std::string path;
 
 	// Open file
-	path = gModulePath + "/290.rec";
-
-	fp = FindFile(path.c_str(), "rb");
+	FILE *fp = OpenFile(FSS_Module, "290.rec", "rb");
 	if (fp == NULL)
 		return 0;
 

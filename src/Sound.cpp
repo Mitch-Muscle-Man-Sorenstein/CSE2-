@@ -181,14 +181,21 @@ int MakePixToneObject(const PIXTONEPARAMETER *ptp, int ptp_num, int no)
 	lpSECONDARYBUFFER[no] = AudioBackend_CreateSound(22050, mixed_pcm_buffer, sample_count);
 	free(pcm_buffer);
 
-	//Convert sound to signed 8 bit and store it for later usage
-	uint8_t *mpb = mixed_pcm_buffer;
-	for (int i = 0; i < sample_count; i++)
-		*mpb++ -= 0x80;
-	
-	PXT_SND *snd = &gPxtSnd[no];
-	snd->data = (int8_t*)mixed_pcm_buffer;
-	snd->size = sample_count;
+	if (no >= 150)
+	{
+		//Convert sound to signed 8 bit and store it for later usage
+		uint8_t *mpb = mixed_pcm_buffer;
+		for (int i = 0; i < sample_count; i++)
+			*mpb++ -= 0x80;
+		
+		PXT_SND *snd = &gPxtSnd[no];
+		snd->data = (int8_t*)mixed_pcm_buffer;
+		snd->size = sample_count;
+	}
+	else
+	{
+		free(mixed_pcm_buffer);
+	}
 
 	if (lpSECONDARYBUFFER[no] == NULL)
 		return -1;

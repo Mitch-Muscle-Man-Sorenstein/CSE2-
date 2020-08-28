@@ -9,6 +9,7 @@
 
 #include "Main.h"
 #include "File.h"
+#include "Filesystem.h"
 
 void GetCompileDate(int *year, int *month, int *day)
 {
@@ -51,20 +52,12 @@ BOOL GetCompileVersion(int *v1, int *v2, int *v3, int *v4)
 
 void DeleteLog(void)
 {
-	std::string path;
-
-	path = gModulePath + "/debug.txt";
-	remove(path.c_str());
+	remove(FindFile(FSS_Module, "debug.txt").c_str());
 }
 
 BOOL WriteLog(const char *string, int value1, int value2, int value3)
 {
-	std::string path;
-	FILE *fp;
-
-	path = gModulePath + "/debug.txt";
-	fp = FindFile(path.c_str(), "a+");
-
+	FILE *fp = OpenFile(FSS_Module, "debug.txt", "a+");
 	if (fp == NULL)
 		return FALSE;
 
@@ -75,10 +68,7 @@ BOOL WriteLog(const char *string, int value1, int value2, int value3)
 
 BOOL IsKeyFile(const char *name)
 {
-	std::string path = gModulePath + '/' + name;
-
-	FILE *file = FindFile(path.c_str(), "rb");
-
+	FILE *file = OpenFile(FSS_Module, name, "rb");
 	if (file == NULL)
 		return FALSE;
 
@@ -89,11 +79,7 @@ BOOL IsKeyFile(const char *name)
 long GetFileSizeLong(const char *path)
 {
 	long len;
-	FILE *fp;
-
-	len = 0;
-
-	fp = FindFile(path, "rb");
+	FILE *fp = fopen(path, "rb");
 	if (fp == NULL)
 		return -1;
 
@@ -105,15 +91,11 @@ long GetFileSizeLong(const char *path)
 
 BOOL ErrorLog(const char *string, int value)
 {
-	std::string path;
-	FILE *fp;
-
-	path = gModulePath + "/error.log";
-
+	std::string path = FindFile(FSS_Module, "error.log");
 	if (GetFileSizeLong(path.c_str()) > 0x19000)	// Purge the error log if it gets too big, I guess
 		remove(path.c_str());
 
-	fp = FindFile(path.c_str(), "a+");
+	FILE *fp = fopen(path.c_str(), "a+");
 	if (fp == NULL)
 		return FALSE;
 

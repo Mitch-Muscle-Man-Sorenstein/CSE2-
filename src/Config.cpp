@@ -7,7 +7,7 @@
 
 #include "Config.h"
 #include "File.h"
-#include "Main.h"
+#include "Filesystem.h"
 
 const char* const gConfigName = "Config.dat";
 const char* const gProof = "DOUKUTSU20041206";
@@ -17,11 +17,8 @@ BOOL LoadConfigData(CONFIG *conf)
 	// Clear old configuration data
 	memset(conf, 0, sizeof(CONFIG));
 
-	// Get path
-	std::string path = gModulePath + '/' + gConfigName;
-
 	// Open file
-	FILE *fp = FindFile(path.c_str(), "rb");
+	FILE *fp = OpenFile(FSS_Module, gConfigName, "rb");
 	if (fp == NULL)
 		return FALSE;
 
@@ -61,7 +58,7 @@ void DefaultConfigData(CONFIG *conf)
 	memset(conf, 0, sizeof(CONFIG));
 
 	// Fun fact: The Linux port added this line:
-	// conf->display_mode = 1;
+	conf->display_mode = 1;
 
 	// Reset joystick settings (as these can't simply be set to 0)
 	conf->bJoystick = TRUE;

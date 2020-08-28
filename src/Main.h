@@ -1,11 +1,16 @@
 #pragma once
 
-#include <string>
-
 #include "WindowsWrapper.h"
 
-extern std::string gModulePath;
-extern std::string gDataPath;
+enum GameSeason
+{
+	GS_None,
+	GS_Pixel,
+	GS_Halloween,
+	GS_Christmas,
+};
+
+extern GameSeason g_GameSeason;
 
 extern BOOL bFullscreen;
 extern BOOL gbUseJoystick;

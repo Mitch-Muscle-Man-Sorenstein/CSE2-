@@ -17,6 +17,8 @@
 #include "Main.h"
 #include "File.h"
 
+#include "Sound02.h"
+
 PIXTONEPARAMETER gPtpTable[NUM_PXT] =
 {
 	{1, 5000, {5, 10.0, 32, 0}, {4, 4.0, 32, 0}, {0, 0.0, 63, 0}, 63, 6, 63, 45, 8, 119, 46},
@@ -219,7 +221,7 @@ BOOL LoadGenericData(void)
 	MakePixToneObject(&gPtpTable[9], 2, 50);
 	MakePixToneObject(&gPtpTable[11], 2, 51);
 	MakePixToneObject(&gPtpTable[33], 1, 1);
-	MakePixToneObject(&gPtpTable[38], 1, 2);
+	lpSECONDARYBUFFER[2] = AudioBackend_CreateSound(22050, sound02_data, sound02_size);//MakePixToneObject(&gPtpTable[38], 1, 2);
 	MakePixToneObject(&gPtpTable[56], 1, 29);
 	MakePixToneObject(&gPtpTable[61], 1, 43);
 	MakePixToneObject(&gPtpTable[62], 3, 44);

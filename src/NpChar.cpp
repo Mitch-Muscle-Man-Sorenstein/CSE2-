@@ -18,6 +18,7 @@
 #include "NpcTbl.h"
 #include "Sound.h"
 #include "ValueView.h"
+#include "Filesystem.h"
 
 NPCHAR gNPC[NPC_MAX];
 int gCurlyShoot_wait;
@@ -55,14 +56,11 @@ void InitNpChar(void)
 BOOL LoadEvent(const char *path_event)
 {
 	int i, n;
-	FILE *fp;
 	int count;
 	char code[4];
 	EVENT eve;
 
-	std::string path = gDataPath + '/' + path_event;
-
-	fp = FindFile(path.c_str(), "rb");
+	FILE *fp = OpenFile(FSS_Mod, path_event, "rb");
 	if (fp == NULL)
 		return FALSE;
 

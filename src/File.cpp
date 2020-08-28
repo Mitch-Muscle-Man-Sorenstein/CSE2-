@@ -1,68 +1,15 @@
 #include "File.h"
 
-#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
-	#define CASE_INSENSITIVE
-#endif
-
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-#include <algorithm>
-#ifdef CASE_INSENSITIVE
-	#include <dirent.h>
-#endif
-
-std::string FindFilePath(const char *path)
-{
-	#ifdef CASE_INSENSITIVE
-		//Get path
-		std::string past = std::string(path);
-		size_t ls = past.find_last_of("/\\");
-		if (ls != std::string::npos)
-			past = past.substr(0, ls + 1);
-		else
-			past = "./";
-		
-		std::string low = std::string(path);
-		std::transform(low.begin(), low.end(), low.begin(), [](unsigned char c){return std::tolower(c);});
-		
-		//Open directory
-		DIR *dir = opendir(past.c_str());
-		dirent *ent;
-		
-		if (dir != nullptr)
-		{
-			while ((ent = readdir(dir)) != NULL)
-			{
-				if (ent->d_type == DT_REG)
-				{
-					std::string this_path = std::string(past) + ent->d_name;
-					std::string low_path = this_path;
-					std::transform(low_path.begin(), low_path.end(), low_path.begin(), [](unsigned char c){return std::tolower(c);});
-					if (low_path == low)
-					{
-						closedir(dir);
-						return this_path;
-					}
-				}
-			}
-			closedir(dir);
-		}
-	#endif
-	return std::string(path);
-}
-
-FILE *FindFile(const char *path, const char *type)
-{
-	return fopen(FindFilePath(path).c_str(), type);
-}
 
 unsigned char* LoadFileToMemory(const char *file_path, size_t *file_size)
 {
 	unsigned char *buffer = NULL;
 
-	FILE *file = FindFile(file_path, "rb");
+	FILE *file = fopen(file_path, "rb");
 
 	if (file != NULL)
 	{

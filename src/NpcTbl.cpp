@@ -7,6 +7,7 @@
 #include "WindowsWrapper.h"
 
 #include "File.h"
+#include "Filesystem.h"
 #include "Generic.h"
 #include "NpcAct.h"
 
@@ -379,7 +380,6 @@ NPC_TABLE *gNpcTable;
 
 BOOL LoadNpcTable(const char *path)
 {
-	FILE *fp;
 	int n;
 	size_t size;
 	int num;
@@ -394,7 +394,7 @@ BOOL LoadNpcTable(const char *path)
 	if (gNpcTable == NULL)
 		return FALSE;
 
-	fp = FindFile(path, "rb");
+	FILE *fp = fopen(path, "rb");
 	if (fp == NULL)
 	{
 		free(gNpcTable);
