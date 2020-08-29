@@ -9,10 +9,7 @@ typedef struct TEXT_SCRIPT
 	
 	//Script buffers
 	BOOL use_head;
-	long head_size;
 	char *head = NULL;
-	
-	long size;
 	char *data = NULL;
 	
 	//Mode (ex. NOD, WAI)

@@ -236,7 +236,7 @@ BOOL MakeSurface_File(std::string name, SurfaceID surf_no)
 	//Decode bitmap
 	unsigned int width, height;
 	unsigned char *image_buffer;
-	image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height);
+	image_buffer = DecodeBitmapFromFile(path, &width, &height);
 	
 	//Create surface
 	RenderBackend_FreeSurface(surf[surf_no]);
@@ -314,7 +314,7 @@ BOOL ReloadBitmap_File(std::string name, SurfaceID surf_no)
 	//Decode bitmap
 	unsigned int width, height;
 	unsigned char *image_buffer;
-	image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height);
+	image_buffer = DecodeBitmapFromFile(path, &width, &height);
 
 	//Scale and upload bitmap to surface
 	if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no, is_original))

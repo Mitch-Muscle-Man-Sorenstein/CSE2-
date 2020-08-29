@@ -494,7 +494,7 @@ int CampLoop(void)
 	}
 
 	// Resume original script
-	LoadTextScript_Stage(old_script_path.c_str());
+	LoadTextScript_Stage(old_script_path);
 	gArmsEnergyX = 32; // Displays weapon rotation animation in case the weapon was changed
 	return enum_ESCRETURN_continue;	// Go to game
 }

@@ -337,7 +337,7 @@ FontObject* LoadFont(std::string font_filename, unsigned int cell_width, unsigne
 						std::string path = font_object->pagePath + font_object->blockPages->pageNames[i];
 						
 						unsigned int width, height;
-						unsigned char *image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height);
+						unsigned char *image_buffer = DecodeBitmapFromFile(path, &width, &height);
 						
 						if (image_buffer != NULL)
 						{
@@ -398,7 +398,7 @@ void RestoreFontSurfaces(FontObject *font_object)
 				std::string path = font_object->pagePath + font_object->blockPages->pageNames[i];
 				
 				unsigned int width, height;
-				unsigned char *image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height);
+				unsigned char *image_buffer = DecodeBitmapFromFile(path, &width, &height);
 				
 				if (image_buffer != NULL)
 				{

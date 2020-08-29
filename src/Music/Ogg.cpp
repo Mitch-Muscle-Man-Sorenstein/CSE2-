@@ -72,14 +72,14 @@ bool Ogg::Load(std::string name)
 	data.CloseDecoders();
 	
 	//Open new decoders
-	if (LoadTrack(OpenFile(FSS_Mod, (name + "_intro.ogg").c_str(), "rb")))
+	if (LoadTrack(OpenFile(FSS_Mod, name + "_intro.ogg", "rb")))
 	{
-		if (LoadTrack(OpenFile(FSS_Mod, (name + ".ogg").c_str(), "rb")))
+		if (LoadTrack(OpenFile(FSS_Mod, name + ".ogg", "rb")))
 			return true;
 	}
 	else 
 	{
-		if (LoadTrack(OpenFile(FSS_Mod, (name + "_loop.ogg").c_str(), "rb")))
+		if (LoadTrack(OpenFile(FSS_Mod, name + "_loop.ogg", "rb")))
 			return true;
 	}
 	

@@ -77,7 +77,7 @@ void EncryptionBinaryData2(unsigned char *pData, long size)
 }
 
 //Common TSC read function
-char *ReadTSC(std::string name, long *size)
+char *ReadTSC(std::string name)
 {
 	//Open file and get size
 	FILE *fp = OpenFile(FSS_Mod, name, "rb");
@@ -85,15 +85,15 @@ char *ReadTSC(std::string name, long *size)
 		return NULL;
 	
 	fseek(fp, 0, SEEK_END);
-	*size = ftell(fp);
+	long size = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 	
 	//Allocate, read, and decrypt into a buffer
-	char *data = new char[*size];
+	char *data = new char[size];
 	if (data != NULL)
 	{
-		fread(data, *size, 1, fp);
-		EncryptionBinaryData2((unsigned char*)data, *size);
+		fread(data, size, 1, fp);
+		EncryptionBinaryData2((unsigned char*)data, size);
 	}
 	fclose(fp);
 	return data;
@@ -113,7 +113,7 @@ BOOL InitTextScript2(void)
 	memset(text, 0, sizeof(text));
 	
 	//Read head script
-	if ((gTS.head = ReadTSC("Head.tsc", &gTS.head_size)) == NULL)
+	if ((gTS.head = ReadTSC("Head.tsc")) == NULL)
 		return FALSE;
 	return TRUE;
 }
@@ -130,7 +130,7 @@ BOOL LoadTextScript2(std::string name)
 {
 	//Read given script
 	delete[] gTS.data;
-	if ((gTS.data = ReadTSC(name, &gTS.size)) == NULL)
+	if ((gTS.data = ReadTSC(name)) == NULL)
 		return FALSE;
 	
 	//Initialize other state things
@@ -144,7 +144,7 @@ BOOL LoadTextScript_Stage(std::string name)
 {
 	//Read given script
 	delete[] gTS.data;
-	if ((gTS.data = ReadTSC(name, &gTS.size)) == NULL)
+	if ((gTS.data = ReadTSC(name)) == NULL)
 		return FALSE;
 	
 	//Initialize other state things
@@ -171,13 +171,13 @@ int GetTextScriptNo(int a)
 }
 
 //TSC event seek
-BOOL SeekTextScript_Single(int no, char *data, long size)
+BOOL SeekTextScript_Single(int no, char *data)
 {
 	gTS.p_read = data;
 	while (1)
 	{
 		//Check if we are still in the proper range
-		if ((gTS.p_read - data) >= size || *gTS.p_read == '\0')
+		if (*gTS.p_read == '\0')
 			return FALSE;
 		
 		//Check if we are at an event
@@ -199,7 +199,7 @@ BOOL SeekTextScript_Single(int no, char *data, long size)
 BOOL SeekTextScript(int no)
 {
 	//Seek to event
-	if (!((gTS.use_head && SeekTextScript_Single(no, gTS.head, gTS.head_size)) || SeekTextScript_Single(no, gTS.data, gTS.size)))
+	if (!((gTS.use_head && SeekTextScript_Single(no, gTS.head)) || SeekTextScript_Single(no, gTS.data)))
 		return FALSE;
 	
 	//Advance until new-line

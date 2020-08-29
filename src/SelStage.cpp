@@ -213,7 +213,7 @@ int StageSelectLoop(int *p_event)
 		else if (gKeyTrg & gKeyCancel)
 		{
 			StopTextScript();
-			LoadTextScript_Stage(old_script_path.c_str());
+			LoadTextScript_Stage(old_script_path);
 			*p_event = 0;
 			return enum_ESCRETURN_continue;
 		}
@@ -224,7 +224,7 @@ int StageSelectLoop(int *p_event)
 			return enum_ESCRETURN_exit;
 	}
 
-	LoadTextScript_Stage(old_script_path.c_str());
+	LoadTextScript_Stage(old_script_path);
 	*p_event = gPermitStage[gSelectedStage].event;
 	return enum_ESCRETURN_continue;
 }
