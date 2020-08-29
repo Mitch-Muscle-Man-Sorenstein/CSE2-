@@ -376,53 +376,45 @@ const NPCFUNCTION gpNpcFuncTbl[361] = {
 	ActNpc360,
 };
 
-NPC_TABLE *gNpcTable;
+NPC_TABLE *gNpcTable = nullptr;
+size_t gNpcTable_size;
 
-BOOL LoadNpcTable(const char *path)
+BOOL LoadNpcTable()
 {
-	int n;
-	size_t size;
-	int num;
-
-	size = GetFileSizeLong(path);	// TODO - Investigate whether GetFileSizeLong actually returns an unsigned long or not
-	if (size == -1)
+	FILE *fp = OpenFile(FSS_Mod, "npc.tbl", "rb");
+	if (!fp)
 		return FALSE;
-
-	num = (int)(size / 0x18);
-
-	gNpcTable = (NPC_TABLE*)malloc(num * sizeof(NPC_TABLE));
-	if (gNpcTable == NULL)
+	
+	fseek(fp, 0, SEEK_END);
+	gNpcTable_size = ftell(fp) / 0x18;
+	fseek(fp, 0, SEEK_SET);
+	
+	ReleaseNpcTable();
+	if ((gNpcTable = (NPC_TABLE*)malloc(gNpcTable_size * sizeof(NPC_TABLE))) == NULL)
 		return FALSE;
-
-	FILE *fp = fopen(path, "rb");
-	if (fp == NULL)
-	{
-		free(gNpcTable);
-		gNpcTable = NULL;
-		return FALSE;
-	}
-
-	for (n = 0; n < num; ++n) // bits
+	
+	size_t n;
+	for (n = 0; n < gNpcTable_size; ++n) // bits
 		gNpcTable[n].bits = File_ReadLE16(fp);
-	for (n = 0; n < num; ++n) // life
+	for (n = 0; n < gNpcTable_size; ++n) // life
 		gNpcTable[n].life = File_ReadLE16(fp);
-	for (n = 0; n < num; ++n) // surf
+	for (n = 0; n < gNpcTable_size; ++n) // surf
 		fread(&gNpcTable[n].surf, 1, 1, fp);
-	for (n = 0; n < num; ++n) // destroy_voice
+	for (n = 0; n < gNpcTable_size; ++n) // destroy_voice
 		fread(&gNpcTable[n].destroy_voice, 1, 1, fp);
-	for (n = 0; n < num; ++n) // hit_voice
+	for (n = 0; n < gNpcTable_size; ++n) // hit_voice
 		fread(&gNpcTable[n].hit_voice, 1, 1, fp);
-	for (n = 0; n < num; ++n) // size
+	for (n = 0; n < gNpcTable_size; ++n) // size
 		fread(&gNpcTable[n].size, 1, 1, fp);
-	for (n = 0; n < num; ++n) // exp
+	for (n = 0; n < gNpcTable_size; ++n) // exp
 		gNpcTable[n].exp = File_ReadLE32(fp);
-	for (n = 0; n < num; ++n) // damage
+	for (n = 0; n < gNpcTable_size; ++n) // damage
 		gNpcTable[n].damage = File_ReadLE32(fp);
-	for (n = 0; n < num; ++n) // hit
+	for (n = 0; n < gNpcTable_size; ++n) // hit
 		fread(&gNpcTable[n].hit, 4, 1, fp);
-	for (n = 0; n < num; ++n) // view
+	for (n = 0; n < gNpcTable_size; ++n) // view
 		fread(&gNpcTable[n].view, 4, 1, fp);
-
+	
 	fclose(fp);
 	return TRUE;
 }

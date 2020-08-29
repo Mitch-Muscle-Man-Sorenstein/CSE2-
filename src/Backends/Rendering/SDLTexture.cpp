@@ -234,31 +234,31 @@ void RenderBackend_DrawScreen(void)
 
 RenderBackend_Surface* RenderBackend_CreateSurface(unsigned int width, unsigned int height, bool render_target)
 {
+	//Allocate surface object
 	RenderBackend_Surface *surface = (RenderBackend_Surface*)malloc(sizeof(RenderBackend_Surface));
-
 	if (surface == NULL)
 		return NULL;
-
+	
+	//Create SDL texture
 	surface->texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, render_target ? SDL_TEXTUREACCESS_TARGET : 0, width, height);
-
 	if (surface->texture == NULL)
 	{
 		free(surface);
 		return NULL;
 	}
-
+	
+	//Set surface information
 	surface->width = width;
 	surface->height = height;
 	surface->lost = false;
-
-	// Add to linked-list
+	
+	//Add to linked-list
 	surface->prev = NULL;
 	surface->next = surface_list_head;
 	surface_list_head = surface;
-
+	
 	if (surface->next != NULL)
 		surface->next->prev = surface;
-
 	return surface;
 }
 
@@ -266,13 +266,14 @@ void RenderBackend_FreeSurface(RenderBackend_Surface *surface)
 {
 	if (surface == NULL)
 		return;
-
-	// Remove from linked list
+	
+	//Remove from linked list
 	if (surface->next != NULL)
 		surface->next->prev = surface->prev;
 	if (surface->prev != NULL)
 		surface->prev->next = surface->next;
-
+	
+	//Free SDL texture and surface
 	SDL_DestroyTexture(surface->texture);
 	free(surface);
 }

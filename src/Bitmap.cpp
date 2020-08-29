@@ -17,7 +17,7 @@ unsigned char* DecodeBitmap(const unsigned char *in_buffer, size_t in_buffer_siz
 	return stbi_load_from_memory(in_buffer, in_buffer_size, (int*)width, (int*)height, NULL, 3);
 }
 
-unsigned char* DecodeBitmapFromFile(const char *path, unsigned int *width, unsigned int *height)
+unsigned char* DecodeBitmapFromFile(std::string path, unsigned int *width, unsigned int *height)
 {
 	size_t file_size;
 	unsigned char *file_buffer = LoadFileToMemory(path, &file_size);

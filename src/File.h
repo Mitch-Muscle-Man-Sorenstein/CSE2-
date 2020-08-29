@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string>
 
-unsigned char* LoadFileToMemory(const char *file_path, size_t *file_size);
+unsigned char* LoadFileToMemory(std::string file_path, size_t *file_size);
 
 unsigned short File_ReadBE16(FILE *stream);
 unsigned long File_ReadBE32(FILE *stream);

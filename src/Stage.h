@@ -70,7 +70,9 @@ extern STAGE_TABLE *gTMT;
 extern char **gMusicTable;
 
 BOOL LoadStageTable();
+void ReleaseStageTable();
 BOOL TransferStage(int no, int w, int x, int y);
 BOOL LoadMusicTable();
+void ReleaseMusicTable();
 void ChangeMusic(MusicID no);
 void ReCallMusic(void);

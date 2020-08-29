@@ -1,8 +1,7 @@
 #pragma once
-
 #include "WindowsWrapper.h"
-
 #include "Draw.h"
+#include <string>
 
 #define NPC_MAX 0x200
 
@@ -121,7 +120,7 @@ extern int gSuperYpos;
 extern const char* const gPassPixEve;
 
 void InitNpChar(void);
-BOOL LoadEvent(const char *path_event);
+BOOL LoadEvent(std::string path_event);
 void SetNpChar(int code_char, int x, int y, int xm, int ym, int dir, NPCHAR *npc, int start_index);
 void SetDestroyNpChar(int x, int y, int w, int num);
 void SetDestroyNpCharUp(int x, int y, int w, int num);

@@ -15,65 +15,56 @@
 #include "NpChar.h"
 #include "Filesystem.h"
 
-#define PXM_BUFFER_SIZE 0x4B000
-
-MAP_DATA gMap;
+MAP_DATA gMap{};
 
 const char *code_pxma = "PXM";
 
-BOOL InitMapData2(void)
-{
-	gMap.data = (unsigned char*)malloc(PXM_BUFFER_SIZE);
-	return TRUE;
-}
-
-BOOL LoadMapData2(const char *path_map)
+BOOL LoadMapData2(std::string path_map)
 {
 	FILE *fp;
-	char check[3];
+	char check[4];
 	
-	// Open file
+	//Open file
 	fp = OpenFile(FSS_Mod, path_map, "rb");
 	if (fp == NULL)
 		return FALSE;
-
-	// Make sure file begins with "PXM"
-	fread(check, 1, 3, fp);
-
+	
+	//Make sure file begins with "PXM"
+	fread(check, 1, 4, fp);
 	if (memcmp(check, code_pxma, 3))
 	{
 		fclose(fp);
 		return FALSE;
 	}
-
-	unsigned char dum;
-	fread(&dum, 1, 1, fp);
-	// Get width and height
+	
+	//Read map dimensions
 	gMap.width = File_ReadLE16(fp);
 	gMap.length = File_ReadLE16(fp);
-
-	if (gMap.data == NULL)
+	
+	//Allocate map data
+	delete[] gMap.data;
+	if ((gMap.data = new unsigned char[gMap.width * gMap.length]) == NULL)
 	{
 		fclose(fp);
 		return FALSE;
 	}
-
-	// Read tile data
+	
+	//Read tile data
 	fread(gMap.data, 1, gMap.width * gMap.length, fp);
 	fclose(fp);
 	return TRUE;
 }
 
-BOOL LoadAttributeData(const char *path_atrb)
+BOOL LoadAttributeData(std::string path_atrb)
 {
 	FILE *fp;
 	
-	// Open file
+	//Open file
 	fp = OpenFile(FSS_Mod, path_atrb, "rb");
 	if (fp == NULL)
 		return FALSE;
-
-	// Read data
+	
+	//Read data
 	fread(gMap.atrb, 1, sizeof(gMap.atrb), fp);
 	fclose(fp);
 	return TRUE;
@@ -81,7 +72,7 @@ BOOL LoadAttributeData(const char *path_atrb)
 
 void EndMapData(void)
 {
-	free(gMap.data);
+	delete[] gMap.data;
 }
 
 void ReleasePartsImage(void)

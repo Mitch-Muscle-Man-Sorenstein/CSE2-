@@ -196,58 +196,55 @@ void ReleaseCreditScript(void)
 // Start playing credits
 BOOL StartCreditScript(void)
 {
-	FILE *fp;
-	std::string path;
-
-	// Clear previously existing credits data
+	//Clear previously existing credits data
 	if (Credit.pData != NULL)
 	{
 		free(Credit.pData);
 		Credit.pData = NULL;
 	}
 
-	// Open file
-	path = FindFile(FSS_Mod, credit_script);
-
-	Credit.size = GetFileSizeLong(path.c_str());
+	//Get file's size
+	std::string path = FindFile(FSS_Mod, credit_script);
+	Credit.size = GetFileSizeLong(path);
 	if (Credit.size == -1)
 		return FALSE;
-
-	// Allocate buffer data
+	
+	//Allocate buffer data
 	Credit.pData = (char*)malloc(Credit.size);
 	if (Credit.pData == NULL)
 		return FALSE;
-
-	fp = fopen(path.c_str(), "rb");
+	
+	//Open file
+	FILE *fp = fopen(path.c_str(), "rb");
 	if (fp == NULL)
 	{
 		free(Credit.pData);
 		return FALSE;
 	}
-
-	// Read data
+	
+	//Read data
 	fread(Credit.pData, 1, Credit.size, fp);
 	EncryptionBinaryData2((unsigned char*)Credit.pData, Credit.size);
 	fclose(fp);
-
-	// Reset credits
+	
+	//Reset credits
 	Credit.offset = 0;
 	Credit.wait = 0;
 	Credit.mode = 1;
 	Illust.x = -160 * 0x200;
 	Illust.act_no = 0;
-
-	// Modify cliprect
+	
+	//Modify cliprect
 	grcGame.left = WINDOW_WIDTH / 2;
 	grcGame.right = ((WINDOW_WIDTH - 320) / 2) + 320;
 	grcGame.top = (WINDOW_HEIGHT - 240) / 2;
 	grcGame.bottom = ((WINDOW_HEIGHT - 240) / 2) + 240;
-
-	// Reload casts
+	
+	//Reload casts
 	if (!ReloadBitmap_File("casts", SURFACE_ID_CASTS))
 		return FALSE;
-
-	// Clear casts
+	
+	//Clear casts
 	memset(Strip, 0, sizeof(Strip));
 	return TRUE;
 }

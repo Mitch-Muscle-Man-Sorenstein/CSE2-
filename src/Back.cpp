@@ -13,21 +13,32 @@
 
 BACK gBack;
 int gWaterY;
-static unsigned long color_black;
 
 // TODO - Another function that has an incorrect stack frame
-BOOL InitBack(const char *fName, int type)
+BOOL InitBack(std::string fName, int type)
 {
-	// Unused
-	color_black = GetCortBoxColor(RGB(0, 0, 0x10));
-
-	// Get width and height
+	//Determine if original or new graphics should be used
 	std::string path;
-	if (gUseOriginalGraphics)
-		path = std::string("ogph/") + fName + ".bmp";
+	BOOL is_original;
+	
+	if (gUseOriginalGraphics && FileExists(path = FindFile(FSS_Mod, std::string("ogph/") + fName + ".bmp")))
+	{
+		//Original graphics is on and an original graphics file was found
+		is_original = TRUE;
+	}
+	else if (FileExists(path = FindFile(FSS_Mod, fName + ".bmp")))
+	{
+		//New graphics file was found
+		is_original = FALSE;
+	}
 	else
-		path = std::string(fName) + ".bmp";
-	FILE *fp = OpenFile(FSS_Mod, path, "rb");
+	{
+		//No file was found
+		return FALSE;
+	}
+	
+	//Open bitmap file and read dimensions
+	FILE *fp = fopen(path.c_str(), "rb");
 	if (fp == NULL)
 		return FALSE;
 
@@ -36,10 +47,10 @@ BOOL InitBack(const char *fName, int type)
 		fclose(fp);
 		return FALSE;
 	}
-
+	
 	fseek(fp, 18, SEEK_SET);
-
-	if (gUseOriginalGraphics)
+	
+	if (is_original)
 	{
 		gBack.partsW = File_ReadLE32(fp);
 		gBack.partsH = File_ReadLE32(fp);
@@ -49,15 +60,15 @@ BOOL InitBack(const char *fName, int type)
 		gBack.partsW = File_ReadLE32(fp) / DRAW_SCALE;
 		gBack.partsH = File_ReadLE32(fp) / DRAW_SCALE;
 	}
+	
 	fclose(fp);
 
-	// Set background stuff and load texture
-	gBack.flag = TRUE;
-	if (!ReloadBitmap_File(fName, SURFACE_ID_LEVEL_BACKGROUND))
-		return FALSE;
-
+	//Setup background and load texture
 	gBack.type = type;
 	gWaterY = 240 * 0x10 * 0x200;
+	
+	if (!ReloadBitmap_File(fName, SURFACE_ID_LEVEL_BACKGROUND))
+		return FALSE;
 	return TRUE;
 }
 
@@ -79,6 +90,13 @@ void ActBack(void)
 				gBack.fx = 640;
 			break;
 	}
+}
+
+void PutBack_Strip(int top, int bottom, int fx)
+{
+	RECT rect = {0, top, 320, bottom};
+	for (int x = -(fx % 320); x < WINDOW_WIDTH; x += 320)
+		PutBitmap4(&grcGame, x, top, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 }
 
 void PutBack(int fx, int fy)
@@ -122,44 +140,13 @@ void PutBack(int fx, int fy)
 			rect.top = 0;
 			rect.bottom = 88;
 			rect.left = 0;
-			rect.right = 320;
+			rect.right = gBack.partsW;
 			PutBitmap4(&grcGame, 0, 0, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
-			rect.top = 88;
-			rect.bottom = 123;
-			rect.left = gBack.fx / 2;
-			rect.right = 320;
-			PutBitmap4(&grcGame, 0, 88, &rect, SURFACE_ID_LEVEL_BACKGROUND);
-
-			rect.left = 0;
-			PutBitmap4(&grcGame, 320 - ((gBack.fx / 2) % 320), 88, &rect, SURFACE_ID_LEVEL_BACKGROUND);
-
-			rect.top = 123;
-			rect.bottom = 146;
-			rect.left = gBack.fx % 320;
-			rect.right = 320;
-			PutBitmap4(&grcGame, 0, 123, &rect, SURFACE_ID_LEVEL_BACKGROUND);
-
-			rect.left = 0;
-			PutBitmap4(&grcGame, 320 - (gBack.fx % 320), 123, &rect, SURFACE_ID_LEVEL_BACKGROUND);
-
-			rect.top = 146;
-			rect.bottom = 176;
-			rect.left = 2 * gBack.fx % 320;
-			rect.right = 320;
-			PutBitmap4(&grcGame, 0, 146, &rect, SURFACE_ID_LEVEL_BACKGROUND);
-
-			rect.left = 0;
-			PutBitmap4(&grcGame, 320 - ((gBack.fx * 2) % 320), 146, &rect, SURFACE_ID_LEVEL_BACKGROUND);
-
-			rect.top = 176;
-			rect.bottom = 240;
-			rect.left = 4 * gBack.fx % 320;
-			rect.right = 320;
-			PutBitmap4(&grcGame, 0, 176, &rect, SURFACE_ID_LEVEL_BACKGROUND);
-
-			rect.left = 0;
-			PutBitmap4(&grcGame, 320 - ((gBack.fx * 4) % 320), 176, &rect, SURFACE_ID_LEVEL_BACKGROUND);
+			PutBack_Strip(88, 123, gBack.fx / 2);
+			PutBack_Strip(123, 146, gBack.fx);
+			PutBack_Strip(146, 176, gBack.fx * 2);
+			PutBack_Strip(176, 240, gBack.fx * 4);
 			break;
 	}
 }

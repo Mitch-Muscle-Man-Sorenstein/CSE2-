@@ -9,6 +9,9 @@ struct CONFIG
 	
 	//Sound settings
 	MusicType music_type = MT_Ogg11;
+	
+	//Video settings
+	bool original_graphics = false;
 };
 
 extern const char* const gConfigName;

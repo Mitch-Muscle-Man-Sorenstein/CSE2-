@@ -1,10 +1,11 @@
 #pragma once
-
+#include <stddef.h>
 #include "WindowsWrapper.h"
+#include <string>
 
 typedef struct MAP_DATA
 {
-	unsigned char *data;
+	unsigned char *data = NULL;
 	unsigned char atrb[0x100];
 	short width;
 	short length;
@@ -12,9 +13,8 @@ typedef struct MAP_DATA
 
 extern MAP_DATA gMap;
 
-BOOL InitMapData2(void);
-BOOL LoadMapData2(const char *path_map);
-BOOL LoadAttributeData(const char *path_atrb);
+BOOL LoadMapData2(std::string path_map);
+BOOL LoadAttributeData(std::string path_atrb);
 void EndMapData(void);
 void ReleasePartsImage(void);
 void GetMapData(unsigned char **data, short *mw, short *ml);

@@ -12,7 +12,7 @@
 const char* const gConfigName = "Config.dat";
 const char* const gProof = "DOUKUTSU20200829";
 
-CONFIG gConfig;
+CONFIG gConfig{};
 
 void LoadConfigData()
 {
@@ -37,6 +37,9 @@ void LoadConfigData()
 	if (music_type >= 0 && music_type < MT_MAX)
 		gConfig.music_type = (MusicType)music_type;
 	
+	//Read video settings
+	gConfig.original_graphics = (bool)fgetc(fp);
+	
 	//Close file
 	fclose(fp);
 	return;
@@ -54,6 +57,9 @@ void SaveConfigData()
 	
 	//Write audio settings
 	fputc((char)gConfig.music_type, fp);
+	
+	//Write video settings
+	fputc((char)gConfig.original_graphics, fp);
 	
 	//Close file
 	fclose(fp);

@@ -37,10 +37,10 @@ BOOL IsKeyFile(const char *name)
 	return TRUE;
 }
 
-long GetFileSizeLong(const char *path)
+long GetFileSizeLong(std::string path)
 {
 	long len;
-	FILE *fp = fopen(path, "rb");
+	FILE *fp = fopen(path.c_str(), "rb");
 	if (fp == NULL)
 		return -1;
 

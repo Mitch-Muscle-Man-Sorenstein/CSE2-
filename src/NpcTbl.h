@@ -1,8 +1,7 @@
 #pragma once
-
 #include "WindowsWrapper.h"
-
 #include "NpChar.h"
+#include <string>
 
 struct NPC_TBL_RECT
 {
@@ -27,9 +26,10 @@ struct NPC_TABLE
 };
 
 extern NPC_TABLE *gNpcTable;
+extern size_t gNpcTable_size;
 
-BOOL LoadNpcTable(const char *path);
-void ReleaseNpcTable(void);
+BOOL LoadNpcTable();
+void ReleaseNpcTable();
 
 // NPC Function table
 typedef void (*NPCFUNCTION)(NPCHAR*);

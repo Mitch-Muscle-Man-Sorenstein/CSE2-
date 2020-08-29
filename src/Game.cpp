@@ -14,6 +14,7 @@
 #include "BulHit.h"
 #include "Bullet.h"
 #include "Caret.h"
+#include "Config.h"
 #include "CommonDefines.h"
 #include "Draw.h"
 #include "Ending.h"
@@ -56,8 +57,19 @@ int gCounter;
 BOOL LoadAssets()
 {
 	LoadSounds();
-	if (!(LoadSurfaces() && LoadStageTable() && LoadMusicTable() && LoadNpcTable(FindFile(FSS_Mod, "npc.tbl").c_str())))
+	if (!(LoadSurfaces() && LoadStageTable() && LoadMusicTable() && LoadNpcTable()))
 		return FALSE;
+	return TRUE;
+}
+
+BOOL SetOriginalGraphics(BOOL use_original)
+{
+	if (gUseOriginalGraphics != use_original)
+	{
+		gUseOriginalGraphics = use_original;
+		if (!LoadSurfaces())
+			return FALSE;
+	}
 	return TRUE;
 }
 
@@ -151,14 +163,21 @@ static int ModeOpening(void)
 	int frame_y;
 	unsigned int wait;
 
+	//Clear mod and use selected graphics
 	SetMod("");
+	SetOriginalGraphics(gConfig.original_graphics);
 
+	//Initialize game state
 	InitNpChar();
 	InitCaret();
 	InitStar();
 	InitFade();
 	InitFlash();
 	InitBossLife();
+	CutNoise();
+	g_GameFlags = 3;
+	
+	//Goto intro stage with no music
 	ChangeMusic(MUS_SILENCE);
 	if (!TransferStage(72, 100, 3, 3))
 	{
@@ -168,15 +187,11 @@ static int ModeOpening(void)
 	SetFrameTargetMyChar(16);
 	SetFadeMask();
 
-	// Reset cliprect and flags
+	//Reset cliprect and flags
 	grcGame.left = 0;
 	grcGame.top = 0;
 	grcGame.right = WINDOW_WIDTH;
 	grcGame.bottom = WINDOW_HEIGHT;
-
-	g_GameFlags = 3;
-
-	CutNoise();
 
 	wait = 0;
 	while (wait < 500)
@@ -326,12 +341,14 @@ static int ModeTitle(void)
 	
 	int anime = 0;
 	
-	// Reset everything
+	//Reset game stuff
 	CutNoise();
-	SetMod("");
-	gUseOriginalGraphics = false;
 	
-	// Initialize background
+	//Clear mod and use new graphics
+	SetMod("");
+	SetOriginalGraphics(FALSE);
+	
+	//Initialize background
 	InitBack("bkMoon", 8);
 	
 	//Play music
@@ -509,7 +526,7 @@ static int ModeTitle(void)
 				Title_PutCenterText(WINDOW_WIDTH / 2, 140, "Press <Z> to begin", GetCortBoxColor(0xFFFFFF));
 				Title_PutCenterText(WINDOW_WIDTH / 2, 155, "(navigate with Up Arrow and", GetCortBoxColor(0xCCAAAA));
 				Title_PutCenterText(WINDOW_WIDTH / 2, 164, "Down Arrow on the menu)", GetCortBoxColor(0xCCAAAA));
-				Title_PutCenterText(WINDOW_WIDTH / 2, 216, "@2011 NICALIS INC.", GetCortBoxColor(0xFFFFFF));
+				Title_PutCenterText(WINDOW_WIDTH / 2, 216, "@2020 MITCH \"MUSCLE MAN\" SORENSTEIN", GetCortBoxColor(0xFFFFFF));
 				break;
 			}
 			case TM_Menu:
@@ -797,6 +814,9 @@ static int ModeAction(void)
 	unsigned long color = GetCortBoxColor(RGB(0, 0, 0x20));
 
 	swPlay = 1;
+	
+	//Load selected graphics
+	SetOriginalGraphics(gConfig.original_graphics);
 
 	// Reset stuff
 	gCounter = 0;
@@ -1053,15 +1073,16 @@ BOOL Game(void)
 {
 	int mode;
 
+	//Initialize and load stuff
 	MakeGenericSurfaces();
 	Filesystem_SetMod("");
-	LoadAssets();
-
-	InitTextScript2();
-	InitSkipFlags();
-	InitMapData2();
+	if (!(LoadAssets() && InitTextScript2()))
+		return FALSE;
+	
 	InitCreditScript();
+	InitSkipFlags();
 
+	//Enter game loop
 	mode = 4;
 	while (mode)
 	{
@@ -1075,10 +1096,12 @@ BOOL Game(void)
 			mode = ModeNicalis();
 	}
 
+	//Deinitialize and free stuff
 	EndMapData();
 	EndTextScript();
 	ReleaseNpcTable();
+	ReleaseStageTable();
+	ReleaseMusicTable();
 	ReleaseCreditScript();
-
 	return TRUE;
 }

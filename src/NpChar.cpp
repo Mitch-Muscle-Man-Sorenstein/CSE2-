@@ -53,7 +53,7 @@ void InitNpChar(void)
 	memset(gNPC, 0, sizeof(gNPC));
 }
 
-BOOL LoadEvent(const char *path_event)
+BOOL LoadEvent(std::string path_event)
 {
 	int i, n;
 	int count;

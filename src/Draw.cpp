@@ -21,6 +21,7 @@
 
 typedef enum SurfaceType
 {
+	SURFACE_SOURCE_NULL = 0,
 	SURFACE_SOURCE_NONE = 1,
 	SURFACE_SOURCE_RESOURCE,
 	SURFACE_SOURCE_FILE
@@ -31,108 +32,105 @@ RECT grcFull = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 
 BOOL gUseOriginalGraphics = FALSE;
 
-static BOOL fullscreen;	// TODO - Not the original variable name
-
-static RenderBackend_Surface *framebuffer;	// TODO - Not the original variable name
-
+static BOOL fullscreen;
+static RenderBackend_Surface *framebuffer;
 static RenderBackend_Surface *surf[SURFACE_ID_MAX];
+static FontObject *font;
 
-static FontObject *font;	// TODO - Not the original variable name
-
-// This doesn't exist in the Linux port, so none of these symbol names are accurate
 static struct
 {
-	char name[20];
-	unsigned int width;
-	unsigned int height;
-	SurfaceType type;
-	BOOL bSystem;	// Basically a 'do not regenerate' flag
-} surface_metadata[SURFACE_ID_MAX];
+	std::string path, name;
+	unsigned int width = 0;
+	unsigned int height = 0;
+	SurfaceType type = SURFACE_SOURCE_NULL;
+	BOOL bSystem = FALSE;
+} surface_metadata[SURFACE_ID_MAX]{};
 
 BOOL Flip_SystemTask(void)
 {
-	// TODO - Not the original variable names
+	//Framerate limiter
 	static const long double rate = (1000.0L / 60.0L);
 	static long double timePrev;
 	static unsigned long timeNow;
-
+	
 	while (TRUE)
 	{
 		if (!SystemTask())
 			return FALSE;
-
+		
 		// Framerate limiter
 		timeNow = Backend_GetTicks();
-
+		
 		if (timeNow >= timePrev + rate)
 			break;
-
+		
 		Backend_Delay(1);
 	}
-
+	
 	if (timeNow >= timePrev + 100.0L)
 		timePrev = timeNow;	// If the timer is freakishly out of sync, panic and reset it, instead of spamming frames for who-knows how long
 	else
 		timePrev += rate;
-
+	
+	//Draw framebuffer to the screen
 	RenderBackend_DrawScreen();
-
+	
+	//Check if surfaces should be restored
 	if (RestoreSurfaces())
 	{
 		RestoreStripper();
 		RestoreMapName();
 		RestoreTextScript();
 	}
-
 	return TRUE;
 }
 
 BOOL StartDirectDraw(const char *title, int width, int height, int lMagnification)
 {
-	memset(surface_metadata, 0, sizeof(surface_metadata));
-
+	//Reset surface metadata
+	for (int i = 0; i < SURFACE_ID_MAX; i++)
+		surface_metadata[i] = {};
+	
+	//Determine if fullscreen should be used
 	switch (lMagnification)
 	{
 		case 0:
-		case 1:
 			fullscreen = FALSE;
 			break;
-		case 2:
+		case 1:
 			fullscreen = TRUE;
 			break;
 	}
-
+	
+	//Create framebuffer
 	framebuffer = RenderBackend_Init(title, width, height, fullscreen);
-
 	if (framebuffer == NULL)
 		return FALSE;
-
 	return TRUE;
 }
 
 void EndDirectDraw(void)
 {
-	int i;
-
-	// Release all surfaces
-	for (i = 0; i < SURFACE_ID_MAX; ++i)
+	//Release all surfaces
+	for (int i = 0; i < SURFACE_ID_MAX; ++i)
 		ReleaseSurface((SurfaceID)i);
-
+	
+	//Release framebuffer
 	framebuffer = NULL;
-
 	RenderBackend_Deinit();
 }
 
 void ReleaseSurface(SurfaceID s)
 {
-	// Release the surface we want to release
+	//Release the surface we want to release
 	if (surf[s] != NULL)
 	{
 		RenderBackend_FreeSurface(surf[s]);
 		surf[s] = NULL;
 	}
-
-	memset(&surface_metadata[s], 0, sizeof(surface_metadata[0]));
+	
+	//Reset metadata
+	surface_metadata[s] = {};
 }
 
 static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, int width, int height, SurfaceID surf_no, BOOL original)
@@ -142,7 +140,7 @@ static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, int width, 
 		// Upscale the bitmap to the game's internal resolution
 		unsigned int pitch;
 		unsigned char *pixels = RenderBackend_LockSurface(surf[surf_no], &pitch, width * DRAW_SCALE, height * DRAW_SCALE);
-
+		
 		if (pixels == NULL)
 			return FALSE;
 		
@@ -150,10 +148,10 @@ static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, int width, 
 		{
 			const unsigned char *src_row = &image_buffer[y * width * 3];
 			unsigned char *dst_row = &pixels[y * pitch * DRAW_SCALE];
-
+			
 			const unsigned char *src_ptr = src_row;
 			unsigned char *dst_ptr = dst_row;
-
+			
 			for (int x = 0; x < width; ++x)
 			{
 				for (int i = 0; i < DRAW_SCALE; ++i)
@@ -162,10 +160,10 @@ static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, int width, 
 					*dst_ptr++ = src_ptr[1];
 					*dst_ptr++ = src_ptr[2];
 				}
-
+				
 				src_ptr += 3;
 			}
-
+			
 			for (int i = 1; i < DRAW_SCALE; ++i)
 				memcpy(dst_row + i * pitch, dst_row, width * DRAW_SCALE * 3);
 		}
@@ -178,7 +176,7 @@ static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, int width, 
 		// Just copy the pixels the way they are
 		unsigned int pitch;
 		unsigned char *pixels = RenderBackend_LockSurface(surf[surf_no], &pitch, width, height);
-
+		
 		if (pixels == NULL)
 			return FALSE;
 		
@@ -186,7 +184,6 @@ static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, int width, 
 		{
 			const unsigned char *src_row = &image_buffer[y * width * 3];
 			unsigned char *dst_row = &pixels[y * pitch];
-
 			memcpy(dst_row, src_row, width * 3);
 		}
 		
@@ -196,152 +193,180 @@ static BOOL ScaleAndUploadSurface(const unsigned char *image_buffer, int width, 
 }
 
 // TODO - Inaccurate stack frame
-BOOL MakeSurface_Resource(const char *name, SurfaceID surf_no)
+BOOL MakeSurface_Resource(std::string name, SurfaceID surf_no)
 {
 	return MakeSurface_File(name, surf_no);
 }
 
 // TODO - Inaccurate stack frame
-BOOL MakeSurface_File(const char *name, SurfaceID surf_no)
+BOOL MakeSurface_File(std::string name, SurfaceID surf_no)
 {
-	if (surf_no >= SURFACE_ID_MAX)
+	//Don't create if not a valid surface
+	if (surf_no < 0 || surf_no >= SURFACE_ID_MAX)
 	{
 		ErrorLog("surface no", surf_no);
 		return FALSE;
 	}
-
-	if (surf[surf_no] != NULL)
-		ReleaseSurface(surf_no);
 	
-	unsigned int width, height;
-	unsigned char *image_buffer;
+	//Determine if original or new graphics should be used
+	std::string path;
 	BOOL is_original;
 	
-	if (gUseOriginalGraphics && (image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string("ogph/") + name + ".bmp").c_str(), &width, &height)) != nullptr)
+	if (gUseOriginalGraphics && FileExists(path = FindFile(FSS_Mod, std::string("ogph/") + name + ".bmp")))
 	{
+		//Original graphics is on and an original graphics file was found
 		is_original = TRUE;
-		surf[surf_no] = RenderBackend_CreateSurface(width * DRAW_SCALE, height * DRAW_SCALE, false);
 	}
-	else if ((image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string(name) + ".bmp").c_str(), &width, &height)) != nullptr)
+	else if (FileExists(path = FindFile(FSS_Mod, name + ".bmp")))
 	{
+		//New graphics file was found
 		is_original = FALSE;
-		surf[surf_no] = RenderBackend_CreateSurface(width, height, false);
 	}
 	else
 	{
-		ErrorLog(name, 1);
+		//No file was found
+		ErrorLog(name.c_str(), 1);
 		return FALSE;
 	}
-
+	
+	//Don't load if we're just gonna load the same file
+	if (path == surface_metadata[surf_no].path)
+		return TRUE;
+	
+	//Decode bitmap
+	unsigned int width, height;
+	unsigned char *image_buffer;
+	image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height);
+	
+	//Create surface
+	RenderBackend_FreeSurface(surf[surf_no]);
+	if (is_original)
+		surf[surf_no] = RenderBackend_CreateSurface(width * DRAW_SCALE, height * DRAW_SCALE, false);
+	else
+		surf[surf_no] = RenderBackend_CreateSurface(width, height, false);
+	
 	if (surf[surf_no] == NULL)
 	{
 		FreeBitmap(image_buffer);
 		return FALSE;
 	}
-
+	
+	//Scale and upload bitmap to surface
 	if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no, is_original))
 	{
 		RenderBackend_FreeSurface(surf[surf_no]);
 		FreeBitmap(image_buffer);
 		return FALSE;
 	}
+	FreeBitmap(image_buffer);
 
+	//Setup surface meta
 	surface_metadata[surf_no].type = SURFACE_SOURCE_FILE;
 	surface_metadata[surf_no].width = width;
 	surface_metadata[surf_no].height = height;
 	surface_metadata[surf_no].bSystem = FALSE;
-	strcpy(surface_metadata[surf_no].name, name);
-	FreeBitmap(image_buffer);
-
+	surface_metadata[surf_no].name = name;
+	surface_metadata[surf_no].path = path;
 	return TRUE;
 }
 
 // TODO - Inaccurate stack frame
-BOOL ReloadBitmap_Resource(const char *name, SurfaceID surf_no)
+BOOL ReloadBitmap_Resource(std::string name, SurfaceID surf_no)
 {
 	return ReloadBitmap_File(name, surf_no);
 }
 
 // TODO - Inaccurate stack frame
-BOOL ReloadBitmap_File(const char *name, SurfaceID surf_no)
+BOOL ReloadBitmap_File(std::string name, SurfaceID surf_no)
 {
-	if (surf_no >= SURFACE_ID_MAX)
+	//Don't reload if not a valid surface
+	if (surf_no < 0 || surf_no >= SURFACE_ID_MAX)
 	{
 		ErrorLog("surface no", surf_no);
 		return FALSE;
 	}
 
-	unsigned int width, height;
-	unsigned char *image_buffer;
+	//Determine if original or new graphics should be used
+	std::string path;
 	BOOL is_original;
 	
-	if (gUseOriginalGraphics && (image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string("ogph/") + name + ".bmp").c_str(), &width, &height)) != nullptr)
+	if (gUseOriginalGraphics && FileExists(path = FindFile(FSS_Mod, std::string("ogph/") + name + ".bmp")))
 	{
+		//Original graphics is on and an original graphics file was found
 		is_original = TRUE;
 	}
-	else if ((image_buffer = DecodeBitmapFromFile(FindFile(FSS_Mod, std::string(name) + ".bmp").c_str(), &width, &height)) != nullptr)
+	else if (FileExists(path = FindFile(FSS_Mod, name + ".bmp")))
 	{
+		//New graphics file was found
 		is_original = FALSE;
 	}
 	else
 	{
-		ErrorLog(name, 1);
+		//No file was found
+		ErrorLog(name.c_str(), 1);
 		return FALSE;
 	}
+	
+	//Don't load if we're just gonna load the same file
+	if (path == surface_metadata[surf_no].path)
+		return TRUE;
+	
+	//Decode bitmap
+	unsigned int width, height;
+	unsigned char *image_buffer;
+	image_buffer = DecodeBitmapFromFile(path.c_str(), &width, &height);
 
+	//Scale and upload bitmap to surface
 	if (!ScaleAndUploadSurface(image_buffer, width, height, surf_no, is_original))
 	{
+		RenderBackend_FreeSurface(surf[surf_no]);
 		FreeBitmap(image_buffer);
 		return FALSE;
 	}
-
 	FreeBitmap(image_buffer);
-	surface_metadata[surf_no].type = SURFACE_SOURCE_FILE;
-	strcpy(surface_metadata[surf_no].name, name);
 
+	//Setup surface meta
+	surface_metadata[surf_no].type = SURFACE_SOURCE_FILE;
+	surface_metadata[surf_no].name = name;
+	surface_metadata[surf_no].path = path;
 	return TRUE;
 }
 
 // TODO - Inaccurate stack frame
 BOOL MakeSurface_Generic(int bxsize, int bysize, SurfaceID surf_no, BOOL bSystem)
 {
-	if (surf_no >= SURFACE_ID_MAX)
+	//Don't create if not a valid surface
+	if (surf_no < 0 || surf_no >= SURFACE_ID_MAX)
 		return FALSE;
-
+	
+	//Create surface if didn't already exist
 	if (surf[surf_no] != NULL)
 		return FALSE;
-
 	surf[surf_no] = RenderBackend_CreateSurface(bxsize * DRAW_SCALE, bysize * DRAW_SCALE, true);
-
 	if (surf[surf_no] == NULL)
 		return FALSE;
-
+	
+	//Setup surface meta
 	surface_metadata[surf_no].type = SURFACE_SOURCE_NONE;
 	surface_metadata[surf_no].width = bxsize;
 	surface_metadata[surf_no].height = bysize;
-
-	if (bSystem)
-		surface_metadata[surf_no].bSystem = TRUE;
-	else
-		surface_metadata[surf_no].bSystem = FALSE;
-
-	strcpy(surface_metadata[surf_no].name, "generic");
-
+	surface_metadata[surf_no].bSystem = bSystem;
+	surface_metadata[surf_no].name = "generic";
 	return TRUE;
 }
 
 void BackupSurface(SurfaceID surf_no, const RECT *rect)
 {
-	static RenderBackend_Rect rcSet;	// TODO - Not the original variable name
+	static RenderBackend_Rect rcSet;
 	rcSet.left = rect->left * DRAW_SCALE;
 	rcSet.top = rect->top * DRAW_SCALE;
 	rcSet.right = rect->right * DRAW_SCALE;
 	rcSet.bottom = rect->bottom * DRAW_SCALE;
-
+	
 	// Do not draw invalid RECTs
 	if (rcSet.right <= rcSet.left || rcSet.bottom <= rcSet.top)
 		return;
-
+	
 	RenderBackend_Blit(framebuffer, &rcSet, surf[surf_no], rcSet.left, rcSet.top, FALSE);
 }
 
@@ -543,10 +568,12 @@ int RestoreSurfaces(void)
 							break;
 
 						case SURFACE_SOURCE_RESOURCE:
+							surface_metadata[s].path = "";
 							ReloadBitmap_Resource(surface_metadata[s].name, (SurfaceID)s);
 							break;
 
 						case SURFACE_SOURCE_FILE:
+							surface_metadata[s].path = "";
 							ReloadBitmap_File(surface_metadata[s].name, (SurfaceID)s);
 							break;
 					}
@@ -558,9 +585,9 @@ int RestoreSurfaces(void)
 	return surfaces_regenerated;
 }
 
-void InitTextObject(const char *name)
+void InitTextObject(std::string name)
 {
-	font = LoadFont(FindFile(FSS_Mod, name).c_str(), 0, 0);
+	font = LoadFont(FindFile(FSS_Mod, name), 0, 0);
 }
 
 unsigned int GetTextWidth(const char *text)

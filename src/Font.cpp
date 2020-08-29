@@ -108,7 +108,7 @@ FontObject* LoadFontFromData(const unsigned char *data, size_t data_size, unsign
 	return NULL;
 }
 
-FontObject* LoadFont(const char *font_filename, unsigned int cell_width, unsigned int cell_height)
+FontObject* LoadFont(std::string font_filename, unsigned int cell_width, unsigned int cell_height)
 {
 	(void)cell_width;
 	(void)cell_height;
@@ -121,7 +121,7 @@ FontObject* LoadFont(const char *font_filename, unsigned int cell_width, unsigne
 		memset(font_object, 0, sizeof(FontObject));
 		
 		//Get the path that holds the .fnt file
-		std::string pagePath = std::string(font_filename);
+		std::string pagePath = font_filename;
 		size_t last_pos = pagePath.find_last_of("/\\");
 		if (last_pos != std::string::npos)
 			font_object->pagePath = pagePath.substr(0, last_pos + 1);
@@ -129,7 +129,7 @@ FontObject* LoadFont(const char *font_filename, unsigned int cell_width, unsigne
 			font_object->pagePath = "";
 		
 		//Open file
-		FILE *fp = fopen(font_filename, "rb");
+		FILE *fp = fopen(font_filename.c_str(), "rb");
 			
 		if (fp != NULL)
 		{
@@ -143,7 +143,7 @@ FontObject* LoadFont(const char *font_filename, unsigned int cell_width, unsigne
 			char header[4];
 			fread(header, 1, 4, fp);
 			
-			if (!strncmp(header, "BMF\x03", 4))
+			if (!memcmp(header, "BMF\x03", 4))
 			{
 				//Read all blocks of the file
 				while (ftell(fp) < size && error == false)

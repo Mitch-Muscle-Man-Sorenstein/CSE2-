@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <string>
 
-unsigned char* LoadFileToMemory(const char *file_path, size_t *file_size)
+unsigned char* LoadFileToMemory(std::string file_path, size_t *file_size)
 {
 	unsigned char *buffer = NULL;
 
-	FILE *file = fopen(file_path, "rb");
+	FILE *file = fopen(file_path.c_str(), "rb");
 
 	if (file != NULL)
 	{

@@ -46,97 +46,97 @@ BOOL LoadStageTable()
 	gTMT_size = ftell(fp) / 0xE5;
 	fseek(fp, 0, SEEK_SET);
 	
-	free(gTMT);
-	if ((gTMT = (STAGE_TABLE*)malloc(gTMT_size * sizeof(STAGE_TABLE))) == NULL)
+	ReleaseStageTable();
+	if ((gTMT = new STAGE_TABLE[gTMT_size]) == NULL)
 		return FALSE;
 	
+	STAGE_TABLE *gTMTp = gTMT;
 	for (size_t i = 0; i < gTMT_size; i++)
 	{
-		fread(gTMT[i].parts, 0x20, 1, fp);
-		fread(gTMT[i].map, 0x20, 1, fp);
-		gTMT[i].bkType = File_ReadLE32(fp);
-		fread(gTMT[i].back, 0x20, 1, fp);
-		fread(gTMT[i].npc, 0x20, 1, fp);
-		fread(gTMT[i].boss, 0x20, 1, fp);
-		gTMT[i].boss_no = fgetc(fp);
-		fread(gTMT[i].name_jp, 0x20, 1, fp);
-		fread(gTMT[i].name, 0x20, 1, fp);
+		fread(gTMTp->parts, 0x20, 1, fp);
+		fread(gTMTp->map, 0x20, 1, fp);
+		gTMTp->bkType = File_ReadLE32(fp);
+		fread(gTMTp->back, 0x20, 1, fp);
+		fread(gTMTp->npc, 0x20, 1, fp);
+		fread(gTMTp->boss, 0x20, 1, fp);
+		gTMTp->boss_no = fgetc(fp);
+		fread(gTMTp->name_jp, 0x20, 1, fp);
+		fread(gTMTp->name, 0x20, 1, fp);
+		gTMTp++;
 	}
 	
 	fclose(fp);
 	return TRUE;
 }
 
-void FreeStageTable()
+void ReleaseStageTable()
 {
-	free(gTMT);
+	if (gTMT != NULL)
+	{
+		delete[] gTMT;
+		gTMT = NULL;
+	}
 }
 
 BOOL TransferStage(int no, int w, int x, int y)
 {
 	std::string path;
 	std::string path_dir;
-	BOOL bError;
 	
-	// If we can't load from the stage table, fail immediately
+	//If we can't load from the stage table, fail immediately
 	if (gTMT == NULL || no > gTMT_size)
 		return FALSE;
 	
-	// Move character
+	//Move character
 	SetMyCharPosition(x * 0x10 * 0x200, y * 0x10 * 0x200);
-
-	bError = FALSE;
-
-	// Get path
+	
+	//Get path
 	path_dir = "Stage";
-
-	// Load tileset
+	
+	//Load tileset
 	path = path_dir + "/Prt" + gTMT[no].parts;
-	if (!ReloadBitmap_File(path.c_str(), SURFACE_ID_LEVEL_TILESET))
-		bError = TRUE;
-
-	path = path_dir + '/' + gTMT[no].parts + ".pxa";
-	if (!LoadAttributeData(path.c_str()))
-		bError = TRUE;
-
-	// Load tilemap
-	path = path_dir + '/' + gTMT[no].map + ".pxm";
-	if (!LoadMapData2(path.c_str()))
-		bError = TRUE;
-
-	// Load NPCs
-	path = path_dir + '/' + gTMT[no].map + ".pxe";
-	if (!LoadEvent(path.c_str()))
-		bError = TRUE;
-
-	// Load script
-	path = path_dir + '/' + gTMT[no].map + ".tsc";
-	if (!LoadTextScript_Stage(path.c_str()))
-		bError = TRUE;
-
-	// Load background
-	path = gTMT[no].back;
-	if (!InitBack(path.c_str(), gTMT[no].bkType))
-		bError = TRUE;
-
-	// Get path
-	path_dir = "Npc";
-
-	// Load NPC sprite sheets
-	path = path_dir + "/Npc" + gTMT[no].npc;
-	if (!ReloadBitmap_File(path.c_str(), SURFACE_ID_LEVEL_SPRITESET_1))
-		bError = TRUE;
-
-	path = path_dir + "/Npc" + gTMT[no].boss;
-	if (!ReloadBitmap_File(path.c_str(), SURFACE_ID_LEVEL_SPRITESET_2))
-		bError = TRUE;
-
-	if (bError)
+	if (!ReloadBitmap_File(path, SURFACE_ID_LEVEL_TILESET))
 		return FALSE;
-
-	// Load map name
+	
+	path = path_dir + '/' + gTMT[no].parts + ".pxa";
+	if (!LoadAttributeData(path))
+		return FALSE;
+	
+	//Load tilemap
+	path = path_dir + '/' + gTMT[no].map + ".pxm";
+	if (!LoadMapData2(path))
+		return FALSE;
+	
+	//Load NPCs
+	path = path_dir + '/' + gTMT[no].map + ".pxe";
+	if (!LoadEvent(path))
+		return FALSE;
+	
+	//Load script
+	path = path_dir + '/' + gTMT[no].map + ".tsc";
+	if (!LoadTextScript_Stage(path))
+		return FALSE;
+	
+	//Load background
+	path = gTMT[no].back;
+	if (!InitBack(path, gTMT[no].bkType))
+		return FALSE;
+	
+	//Get path
+	path_dir = "Npc";
+	
+	//Load NPC sprite sheets
+	path = path_dir + "/Npc" + gTMT[no].npc;
+	if (!ReloadBitmap_File(path, SURFACE_ID_LEVEL_SPRITESET_1))
+		return FALSE;
+	
+	path = path_dir + "/Npc" + gTMT[no].boss;
+	if (!ReloadBitmap_File(path, SURFACE_ID_LEVEL_SPRITESET_2))
+		return FALSE;
+	
+	//Load map name
 	ReadyMapName(gTMT[no].name);
-
+	
 	StartTextScript(w);
 	SetFrameMyChar();
 	ClearBullet();
@@ -146,7 +146,6 @@ BOOL TransferStage(int no, int w, int x, int y)
 	InitBossChar(gTMT[no].boss_no);
 	ResetFlash();
 	gStageNo = no;
-
 	return TRUE;
 }
 
@@ -164,14 +163,14 @@ BOOL LoadMusicTable()
 	gMusicTable_size = ftell(fp) / 0x10;
 	fseek(fp, 0, SEEK_SET);
 	
-	free(gMusicTable);
-	if ((gMusicTable = (char**)malloc(gMusicTable_size * sizeof(char**))) == NULL)
+	ReleaseMusicTable();
+	if ((gMusicTable = new char*[gMusicTable_size]) == NULL)
 		return FALSE;
 	
 	char **musicp = gMusicTable;
 	for (size_t i = 0; i < gMusicTable_size; i++)
 	{
-		*musicp = (char*)malloc(0x10);
+		*musicp = new char[0x10];
 		fread(*musicp, 0x10, 1, fp);
 		musicp++;
 	}
@@ -180,9 +179,14 @@ BOOL LoadMusicTable()
 	return TRUE;
 }
 
-void FreeMusicTable()
+void ReleaseMusicTable()
 {
-	free(gMusicTable);
+	if (gMusicTable != NULL)
+	{
+		for (size_t i = 0; i < gMusicTable_size; i++)
+			delete[] gMusicTable[i];
+		delete[] gMusicTable;
+	}
 }
 
 void ChangeMusic(MusicID no)
