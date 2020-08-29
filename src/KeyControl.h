@@ -34,6 +34,7 @@ enum KeyBind
 	KEY_PLUS =      0x00100000
 };
 
+extern long gKeyInternal;
 extern long gKey;
 extern long gKeyTrg;
 

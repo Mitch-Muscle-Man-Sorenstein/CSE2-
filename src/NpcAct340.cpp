@@ -1814,6 +1814,16 @@ void ActNpc355(NPCHAR *npc)
 	}
 
 	npc->rect = rc[npc->ani_no];
+	if (npc->surf == SURFACE_ID_MY_CHAR)
+	{
+		if (gMC.equip & EQUIP_MIMIGA_MASK)
+		{
+			npc->rect.top += 32;
+			npc->rect.bottom += 32;
+		}
+		npc->rect.top += gMC_Costume * 64;
+		npc->rect.bottom += gMC_Costume * 64;
+	}
 }
 
 // Balrog rescue

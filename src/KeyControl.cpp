@@ -1,5 +1,6 @@
 #include "KeyControl.h"
 
+long gKeyInternal;
 long gKey;
 long gKeyTrg;
 
@@ -21,6 +22,11 @@ long gKeyDown = KEY_DOWN;
 void GetTrg(void)
 {
 	static int key_old;
+	gKey = gKeyInternal;
+	if ((gKey & (gKeyLeft | gKeyRight)) == (gKeyLeft | gKeyRight))
+		gKey &= ~(gKeyLeft | gKeyRight);
+	if ((gKey & (gKeyUp | gKeyDown)) == (gKeyUp | gKeyDown))
+		gKey &= ~(gKeyUp | gKeyDown);
 	gKeyTrg = gKey ^ key_old;
 	gKeyTrg = gKey & gKeyTrg;
 	key_old = gKey;

@@ -445,10 +445,11 @@ int CampLoop(void)
 			switch (Call_Escape())
 			{
 				case enum_ESCRETURN_exit:
-					return enum_ESCRETURN_exit;	// Quit game
-
+					return enum_ESCRETURN_exit;
 				case enum_ESCRETURN_restart:
-					return enum_ESCRETURN_restart;	// Go to game intro
+					return enum_ESCRETURN_restart;
+				default:
+					break;
 			}
 		}
 

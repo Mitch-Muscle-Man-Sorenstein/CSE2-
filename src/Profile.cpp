@@ -30,15 +30,18 @@
 const char* const gDefaultName = "Profile";
 const char* const gDefaultExt = ".dat";
 const char* const gProfileCode = "Do200823";
-std::string gProfileId;
+unsigned int gProfileId;
 
-std::string GetProfilePath(std::string id)
+std::string GetProfilePath(unsigned int id)
 {
-	return FindFile(FSS_Module, gDefaultName + id + gDefaultExt);
+	return FindFile(FSS_Module, gDefaultName + std::to_string(id) + gDefaultExt);
 }
 
-BOOL GetProfile(std::string id, PROFILE *profile)
+BOOL GetProfile(unsigned int id, PROFILE *profile)
 {
+	//Initialize profile
+	profile->flag = FALSE;
+	
 	//Open file
 	std::string path = GetProfilePath(id);
 	FILE *fp = fopen(path.c_str(), "rb");
@@ -86,6 +89,7 @@ BOOL GetProfile(std::string id, PROFILE *profile)
 	fread(profile->permit_mapping, 0x80, 1, fp);
 	fread(profile->FLAG, 4, 1, fp);
 	fread(profile->flags, 1000, 1, fp);
+	profile->flag = TRUE;
 	fclose(fp);
 	
 	//Get profile's time of modification (TEMP)
@@ -96,7 +100,7 @@ BOOL GetProfile(std::string id, PROFILE *profile)
 	return TRUE;
 }
 
-BOOL SaveProfile(std::string id)
+BOOL SaveProfile(unsigned int id)
 {
 	FILE *fp;
 	PROFILE profile;
@@ -172,7 +176,7 @@ BOOL SaveProfile(std::string id)
 	return TRUE;
 }
 
-BOOL LoadProfile(std::string id)
+BOOL LoadProfile(unsigned int id)
 {
 	//Read profile
 	PROFILE profile;
@@ -228,7 +232,7 @@ BOOL LoadProfile(std::string id)
 	return TRUE;
 }
 
-BOOL InitializeGame(std::string id)
+BOOL InitializeGame(unsigned int id)
 {
 	InitMyChar();
 	gSelectedArms = 0;
@@ -263,7 +267,7 @@ BOOL InitializeGame(std::string id)
 	return TRUE;
 }
 
-BOOL DeleteProfile(std::string id)
+BOOL DeleteProfile(unsigned int id)
 {
 	return remove(GetProfilePath(id).c_str()) != 0;
 }

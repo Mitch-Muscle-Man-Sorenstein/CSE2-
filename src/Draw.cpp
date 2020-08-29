@@ -29,7 +29,7 @@ typedef enum SurfaceType
 RECT grcGame = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 RECT grcFull = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 
-BOOL gUseOriginalGraphics = TRUE;
+BOOL gUseOriginalGraphics = FALSE;
 
 static BOOL fullscreen;	// TODO - Not the original variable name
 
@@ -211,10 +211,7 @@ BOOL MakeSurface_File(const char *name, SurfaceID surf_no)
 	}
 
 	if (surf[surf_no] != NULL)
-	{
-		ErrorLog("existing", surf_no);
-		return FALSE;
-	}
+		ReleaseSurface(surf_no);
 	
 	unsigned int width, height;
 	unsigned char *image_buffer;
@@ -561,38 +558,9 @@ int RestoreSurfaces(void)
 	return surfaces_regenerated;
 }
 
-// TODO - Inaccurate stack frame
 void InitTextObject(const char *name)
 {
-	// Get font size
-	unsigned int width, height;
-
-	switch (DRAW_SCALE)
-	{
-#ifdef JAPANESE
-		case 1:
-			height = 12;
-			width = 12;
-			break;
-
-		case 2:
-			height = 20;
-			width = 20;
-			break;
-#else
-		case 1:
-			height = 10;
-			width = 9;
-			break;
-
-		case 2:
-			height = 18;
-			width = 17;
-			break;
-#endif
-	}
-
-	font = LoadFont(FindFile(FSS_Mod, name).c_str(), width, height);
+	font = LoadFont(FindFile(FSS_Mod, name).c_str(), 0, 0);
 }
 
 unsigned int GetTextWidth(const char *text)

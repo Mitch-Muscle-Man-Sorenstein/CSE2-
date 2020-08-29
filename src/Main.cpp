@@ -76,17 +76,15 @@ void PutFramePerSecound(void)
 	}
 }
 
-// TODO - Inaccurate stack frame
 int main(int argc, char *argv[])
 {
 	(void)argc;
-
-	int i;
-
+	
+	// Initialize backend
 	if (!Backend_Init())
 		return EXIT_FAILURE;
 	
-	//Get game season
+	// Get game season
 	time_t now;
 	time(&now);
 	struct tm *timeinfo = localtime(&now);
@@ -110,7 +108,7 @@ int main(int argc, char *argv[])
 			g_GameSeason = GS_None;
 			break;
 	}
-
+	
 	// Get executable's path
 	std::string modulePath;
 	if (!Backend_GetBasePath(&modulePath))
@@ -125,156 +123,30 @@ int main(int argc, char *argv[])
 	}
 	
 	// Initialize filesystem
-	if (!InitFilesystem(modulePath))
+	if (!Filesystem_Init(modulePath))
 		return EXIT_FAILURE;
 	
-	// Get path of the data folder
-	CONFIG conf;
-	if (!LoadConfigData(&conf))
-		DefaultConfigData(&conf);
-
-	// Apply keybinds
-	// Swap X and Z buttons
-	switch (conf.attack_button_mode)
-	{
-		case 0:
-			gKeyJump = KEY_Z;
-			gKeyShot = KEY_X;
-			break;
-
-		case 1:
-			gKeyJump = KEY_X;
-			gKeyShot = KEY_Z;
-			break;
-	}
-
-	// Swap Okay and Cancel buttons
-	switch (conf.ok_button_mode)
-	{
-		case 0:
-			gKeyOk = gKeyJump;
-			gKeyCancel = gKeyShot;
-			break;
-
-		case 1:
-			gKeyOk = gKeyShot;
-			gKeyCancel = gKeyJump;
-			break;
-	}
-
-	// Swap left and right weapon switch keys
-	if (IsKeyFile("s_reverse"))
-	{
-		gKeyArms = KEY_ARMSREV;
-		gKeyArmsRev = KEY_ARMS;
-	}
-
-	// Alternate movement keys
-	switch (conf.move_button_mode)
-	{
-		case 0:
-			gKeyLeft = KEY_LEFT;
-			gKeyUp = KEY_UP;
-			gKeyRight = KEY_RIGHT;
-			gKeyDown = KEY_DOWN;
-			break;
-
-		case 1:
-			gKeyLeft = KEY_ALT_LEFT;
-			gKeyUp = KEY_ALT_UP;
-			gKeyRight = KEY_ALT_RIGHT;
-			gKeyDown = KEY_ALT_DOWN;
-			break;
-	}
-
-	// Set gamepad inputs
-	for (i = 0; i < 8; ++i)
-	{
-		switch (conf.joystick_button[i])
-		{
-			case 1:
-				gJoystickButtonTable[i] = gKeyJump;
-				break;
-
-			case 2:
-				gJoystickButtonTable[i] = gKeyShot;
-				break;
-
-			case 3:
-				gJoystickButtonTable[i] = gKeyArms;
-				break;
-
-			case 6:
-				gJoystickButtonTable[i] = gKeyArmsRev;
-				break;
-
-			case 4:
-				gJoystickButtonTable[i] = gKeyItem;
-				break;
-
-			case 5:
-				gJoystickButtonTable[i] = gKeyMap;
-				break;
-		}
-	}
-
-	RECT unused_rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-
-	switch (conf.display_mode)
-	{
-		case 1:
-		case 2:
-			// Set window dimensions
-			if (conf.display_mode == 1)
-			{
-				windowWidth = WINDOW_WIDTH;
-				windowHeight = WINDOW_HEIGHT;
-			}
-			else
-			{
-				windowWidth = WINDOW_WIDTH * 2;
-				windowHeight = WINDOW_HEIGHT * 2;
-			}
-
-			if (conf.display_mode == 1)
-			{
-				if (!StartDirectDraw(lpWindowName, windowWidth, windowHeight, 0))
-				{
-					Backend_Deinit();
-					return EXIT_FAILURE;
-				}
-			}
-			else
-			{
-				if (!StartDirectDraw(lpWindowName, windowWidth, windowHeight, 1))
-				{
-					Backend_Deinit();
-					return EXIT_FAILURE;
-				}
-			}
-
-			break;
-
-		case 0:
-		case 3:
-		case 4:
-			// Set window dimensions
-			windowWidth = WINDOW_WIDTH * 2;
-			windowHeight = WINDOW_HEIGHT * 2;
-
-			if (!StartDirectDraw(lpWindowName, windowWidth, windowHeight, 2))
-			{
-				Backend_Deinit();
-				return EXIT_FAILURE;
-			}
-
-			bFullscreen = TRUE;
-
-			Backend_HideMouse();
-			break;
-	}
-
-	// Set up window icon
+	// Load configuration
+	LoadConfigData();
+	
+	// Apply configuration
+	SetMusicType(gConfig.music_type);
+	
+	// TEMP: Apply keybinds
+	gKeyJump = KEY_Z;
+	gKeyShot = KEY_X;
+	gKeyOk = gKeyJump;
+	gKeyCancel = gKeyShot;
+	gKeyLeft = KEY_LEFT;
+	gKeyUp = KEY_UP;
+	gKeyRight = KEY_RIGHT;
+	gKeyDown = KEY_DOWN;
+	
+	// Initialize renderer
+	if (!StartDirectDraw(lpWindowName, WINDOW_WIDTH * 2, WINDOW_HEIGHT * 2, FALSE))
+		return EXIT_FAILURE;
+	
+	// Load and use window icon
 	FILE *window_icon_resource = OpenFile(FSS_Module, "data/icon.bmp", "rb");
 	if (window_icon_resource)
 	{
@@ -289,7 +161,7 @@ int main(int argc, char *argv[])
 		{
 			unsigned int window_icon_width, window_icon_height;
 			unsigned char *window_icon_rgb_pixels = DecodeBitmap(window_icon_resource_data, window_icon_resource_size, &window_icon_width, &window_icon_height);
-
+			
 			if (window_icon_rgb_pixels != NULL)
 			{
 				Backend_SetWindowIcon(window_icon_rgb_pixels, window_icon_width, window_icon_height);
@@ -300,54 +172,47 @@ int main(int argc, char *argv[])
 		fclose(window_icon_resource);
 		delete[] window_icon_resource_data;
 	}
-
-	if (IsKeyFile("fps"))
-		bFPS = TRUE;
-
+	
 	// Set rects
 	RECT rcLoading = {0, 0, 64, 8};
 	RECT rcFull = {0, 0, 0, 0};
 	rcFull.right = WINDOW_WIDTH;
 	rcFull.bottom = WINDOW_HEIGHT;
-
+	
 	// Load the "LOADING" text
 	BOOL b = MakeSurface_File("Loading", SURFACE_ID_LOADING);
-
+	
 	// Draw loading screen
 	CortBox(&rcFull, 0x000000);
 	PutBitmap3(&rcFull, (WINDOW_WIDTH / 2) - 32, (WINDOW_HEIGHT / 2) - 4, &rcLoading, SURFACE_ID_LOADING);
-
+	
 	// Draw to screen
 	if (!Flip_SystemTask())
 	{
 		Backend_Deinit();
 		return EXIT_SUCCESS;
 	}
-
+	
 	// Initialize sound
 	InitDirectSound();
-
-	// Initialize joystick
-	if (conf.bJoystick && InitDirectInput())
-	{
-		ResetJoystickStatus();
-		gbUseJoystick = TRUE;
-	}
-
-	// Initialize stuff
+	
+	// Initialize font and trig
 	InitTextObject("csfont.fnt");
 	InitTriangleTable();
-
-	// Run game code
+	
+	// Enter game loop
 	Game();
-
-	// End stuff
+	
+	// Save configuration
+	SaveConfigData();
+	
+	// Free font
 	EndTextObject();
+	
+	// End drawing, sound, and backend
 	EndDirectSound();
 	EndDirectDraw();
-
 	Backend_Deinit();
-
 	return EXIT_SUCCESS;
 }
 
@@ -382,80 +247,80 @@ BOOL SystemTask(void)
 			switch (i)
 			{
 				case BACKEND_KEYBOARD_ESCAPE:
-					gKey |= KEY_ESCAPE;
+					gKeyInternal |= KEY_ESCAPE;
 					break;
 
 				case BACKEND_KEYBOARD_W:
-					gKey |= KEY_MAP;
+					gKeyInternal |= KEY_MAP;
 					break;
 
 				case BACKEND_KEYBOARD_LEFT:
-					gKey |= KEY_LEFT;
+					gKeyInternal |= KEY_LEFT;
 					break;
 
 				case BACKEND_KEYBOARD_RIGHT:
-					gKey |= KEY_RIGHT;
+					gKeyInternal |= KEY_RIGHT;
 					break;
 
 				case BACKEND_KEYBOARD_UP:
-					gKey |= KEY_UP;
+					gKeyInternal |= KEY_UP;
 					break;
 
 				case BACKEND_KEYBOARD_DOWN:
-					gKey |= KEY_DOWN;
+					gKeyInternal |= KEY_DOWN;
 					break;
 
 				case BACKEND_KEYBOARD_X:
-					gKey |= KEY_X;
+					gKeyInternal |= KEY_X;
 					break;
 
 				case BACKEND_KEYBOARD_Z:
-					gKey |= KEY_Z;
+					gKeyInternal |= KEY_Z;
 					break;
 
 				case BACKEND_KEYBOARD_S:
-					gKey |= KEY_ARMS;
+					gKeyInternal |= KEY_ARMS;
 					break;
 
 				case BACKEND_KEYBOARD_A:
-					gKey |= KEY_ARMSREV;
+					gKeyInternal |= KEY_ARMSREV;
 					break;
 
 				case BACKEND_KEYBOARD_LEFT_SHIFT:
 				case BACKEND_KEYBOARD_RIGHT_SHIFT:
-					gKey |= KEY_SHIFT;
+					gKeyInternal |= KEY_SHIFT;
 					break;
 
 				case BACKEND_KEYBOARD_F1:
-					gKey |= KEY_F1;
+					gKeyInternal |= KEY_F1;
 					break;
 
 				case BACKEND_KEYBOARD_F2:
-					gKey |= KEY_F2;
+					gKeyInternal |= KEY_F2;
 					break;
 
 				case BACKEND_KEYBOARD_Q:
-					gKey |= KEY_ITEM;
+					gKeyInternal |= KEY_ITEM;
 					break;
 
 				case BACKEND_KEYBOARD_COMMA:
-					gKey |= KEY_ALT_LEFT;
+					gKeyInternal |= KEY_ALT_LEFT;
 					break;
 
 				case BACKEND_KEYBOARD_PERIOD:
-					gKey |= KEY_ALT_DOWN;
+					gKeyInternal |= KEY_ALT_DOWN;
 					break;
 
 				case BACKEND_KEYBOARD_FORWARD_SLASH:
-					gKey |= KEY_ALT_RIGHT;
+					gKeyInternal |= KEY_ALT_RIGHT;
 					break;
 
 				case BACKEND_KEYBOARD_L:
-					gKey |= KEY_L;
+					gKeyInternal |= KEY_L;
 					break;
 
 				case BACKEND_KEYBOARD_EQUALS:
-					gKey |= KEY_PLUS;
+					gKeyInternal |= KEY_PLUS;
 					break;
 
 				case BACKEND_KEYBOARD_F5:
@@ -468,80 +333,80 @@ BOOL SystemTask(void)
 			switch (i)
 			{
 				case BACKEND_KEYBOARD_ESCAPE:
-					gKey &= ~KEY_ESCAPE;
+					gKeyInternal &= ~KEY_ESCAPE;
 					break;
 
 				case BACKEND_KEYBOARD_W:
-					gKey &= ~KEY_MAP;
+					gKeyInternal &= ~KEY_MAP;
 					break;
 
 				case BACKEND_KEYBOARD_LEFT:
-					gKey &= ~KEY_LEFT;
+					gKeyInternal &= ~KEY_LEFT;
 					break;
 
 				case BACKEND_KEYBOARD_RIGHT:
-					gKey &= ~KEY_RIGHT;
+					gKeyInternal &= ~KEY_RIGHT;
 					break;
 
 				case BACKEND_KEYBOARD_UP:
-					gKey &= ~KEY_UP;
+					gKeyInternal &= ~KEY_UP;
 					break;
 
 				case BACKEND_KEYBOARD_DOWN:
-					gKey &= ~KEY_DOWN;
+					gKeyInternal &= ~KEY_DOWN;
 					break;
 
 				case BACKEND_KEYBOARD_X:
-					gKey &= ~KEY_X;
+					gKeyInternal &= ~KEY_X;
 					break;
 
 				case BACKEND_KEYBOARD_Z:
-					gKey &= ~KEY_Z;
+					gKeyInternal &= ~KEY_Z;
 					break;
 
 				case BACKEND_KEYBOARD_S:
-					gKey &= ~KEY_ARMS;
+					gKeyInternal &= ~KEY_ARMS;
 					break;
 
 				case BACKEND_KEYBOARD_A:
-					gKey &= ~KEY_ARMSREV;
+					gKeyInternal &= ~KEY_ARMSREV;
 					break;
 
 				case BACKEND_KEYBOARD_LEFT_SHIFT:
 				case BACKEND_KEYBOARD_RIGHT_SHIFT:
-					gKey &= ~KEY_SHIFT;
+					gKeyInternal &= ~KEY_SHIFT;
 					break;
 
 				case BACKEND_KEYBOARD_F1:
-					gKey &= ~KEY_F1;
+					gKeyInternal &= ~KEY_F1;
 					break;
 
 				case BACKEND_KEYBOARD_F2:
-					gKey &= ~KEY_F2;
+					gKeyInternal &= ~KEY_F2;
 					break;
 
 				case BACKEND_KEYBOARD_Q:
-					gKey &= ~KEY_ITEM;
+					gKeyInternal &= ~KEY_ITEM;
 					break;
 
 				case BACKEND_KEYBOARD_COMMA:
-					gKey &= ~KEY_ALT_LEFT;
+					gKeyInternal &= ~KEY_ALT_LEFT;
 					break;
 
 				case BACKEND_KEYBOARD_PERIOD:
-					gKey &= ~KEY_ALT_DOWN;
+					gKeyInternal &= ~KEY_ALT_DOWN;
 					break;
 
 				case BACKEND_KEYBOARD_FORWARD_SLASH:
-					gKey &= ~KEY_ALT_RIGHT;
+					gKeyInternal &= ~KEY_ALT_RIGHT;
 					break;
 
 				case BACKEND_KEYBOARD_L:
-					gKey &= ~KEY_L;
+					gKeyInternal &= ~KEY_L;
 					break;
 
 				case BACKEND_KEYBOARD_EQUALS:
-					gKey &= ~KEY_PLUS;
+					gKeyInternal &= ~KEY_PLUS;
 					break;
 			}
 		}
@@ -564,35 +429,35 @@ void JoystickProc(void)
 	if (!GetJoystickStatus(&status))
 		return;
 
-	gKey &= (KEY_ESCAPE | KEY_F1 | KEY_F2);
+	gKeyInternal &= (KEY_ESCAPE | KEY_F1 | KEY_F2);
 
 	// Set movement buttons
 	if (status.bLeft)
-		gKey |= gKeyLeft;
+		gKeyInternal |= gKeyLeft;
 	else
-		gKey &= ~gKeyLeft;
+		gKeyInternal &= ~gKeyLeft;
 
 	if (status.bRight)
-		gKey |= gKeyRight;
+		gKeyInternal |= gKeyRight;
 	else
-		gKey &= ~gKeyRight;
+		gKeyInternal &= ~gKeyRight;
 
 	if (status.bUp)
-		gKey |= gKeyUp;
+		gKeyInternal |= gKeyUp;
 	else
-		gKey &= ~gKeyUp;
+		gKeyInternal &= ~gKeyUp;
 
 	if (status.bDown)
-		gKey |= gKeyDown;
+		gKeyInternal |= gKeyDown;
 	else
-		gKey &= ~gKeyDown;
+		gKeyInternal &= ~gKeyDown;
 
 	// Clear held buttons
 	for (i = 0; i < 8; ++i)
-		gKey &= ~gJoystickButtonTable[i];
+		gKeyInternal &= ~gJoystickButtonTable[i];
 
 	// Set held buttons
 	for (i = 0; i < 8; ++i)
 		if (status.bButton[i])
-			gKey |= gJoystickButtonTable[i];
+			gKeyInternal |= gJoystickButtonTable[i];
 }

@@ -162,47 +162,45 @@ PIXTONEPARAMETER gPtpTable[NUM_PXT] =
 	{1, 1000, {0, 20.0, 0, 0}, {0, 0.0, 0, 0}, {0, 0.0, 0, 0}, 0, 64, 0, 128, 0, 255, 0}
 };
 
-BOOL LoadGenericData(void)
+BOOL LoadSurfaces(void)
 {
-	BOOL bError;
-
-	bError = FALSE;
 	if (!MakeSurface_File("Nicalis", SURFACE_ID_NICALIS))
-		bError = TRUE;
-	if (!MakeSurface_File("MyChar", SURFACE_ID_MY_CHAR))
-		bError = TRUE;
-	if (!MakeSurface_File("Title", SURFACE_ID_TITLE))
-		bError = TRUE;
-	if (!MakeSurface_File("ArmsImage", SURFACE_ID_ARMS_IMAGE))
-		bError = TRUE;
-	if (!MakeSurface_File("UI", SURFACE_ID_UI))
-		bError = TRUE;
-	if (!MakeSurface_File("Arms", SURFACE_ID_ARMS))
-		bError = TRUE;
-	if (!MakeSurface_File("ItemImage", SURFACE_ID_ITEM_IMAGE))
-		bError = TRUE;
-	if (!MakeSurface_File("StageImage", SURFACE_ID_STAGE_ITEM))
-		bError = TRUE;
-	if (!MakeSurface_File("Npc/NpcSym", SURFACE_ID_NPC_SYM))
-		bError = TRUE;
-	if (!MakeSurface_File("Npc/NpcRegu", SURFACE_ID_NPC_REGU))
-		bError = TRUE;
-	if (!MakeSurface_File("TextBox", SURFACE_ID_TEXT_BOX))
-		bError = TRUE;
-	if (!MakeSurface_File("Caret", SURFACE_ID_CARET))
-		bError = TRUE;
-	if (!MakeSurface_File("Bullet", SURFACE_ID_BULLET))
-		bError = TRUE;
-	if (!MakeSurface_File("Face", SURFACE_ID_FACE))
-		bError = TRUE;
-	if (!MakeSurface_File("Fade", SURFACE_ID_FADE))
-		bError = TRUE;
-
-	MakeSurface_Resource("CREDIT01", SURFACE_ID_CREDITS_IMAGE);
-
-	if (bError)
 		return FALSE;
+	if (!MakeSurface_File("MyChar", SURFACE_ID_MY_CHAR))
+		return FALSE;
+	if (!MakeSurface_File("Title", SURFACE_ID_TITLE))
+		return FALSE;
+	if (!MakeSurface_File("ArmsImage", SURFACE_ID_ARMS_IMAGE))
+		return FALSE;
+	if (!MakeSurface_File("UI", SURFACE_ID_UI))
+		return FALSE;
+	if (!MakeSurface_File("Arms", SURFACE_ID_ARMS))
+		return FALSE;
+	if (!MakeSurface_File("ItemImage", SURFACE_ID_ITEM_IMAGE))
+		return FALSE;
+	if (!MakeSurface_File("StageImage", SURFACE_ID_STAGE_ITEM))
+		return FALSE;
+	if (!MakeSurface_File("Npc/NpcSym", SURFACE_ID_NPC_SYM))
+		return FALSE;
+	if (!MakeSurface_File("Npc/NpcRegu", SURFACE_ID_NPC_REGU))
+		return FALSE;
+	if (!MakeSurface_File("TextBox", SURFACE_ID_TEXT_BOX))
+		return FALSE;
+	if (!MakeSurface_File("Caret", SURFACE_ID_CARET))
+		return FALSE;
+	if (!MakeSurface_File("Bullet", SURFACE_ID_BULLET))
+		return FALSE;
+	if (!MakeSurface_File("Face", SURFACE_ID_FACE))
+		return FALSE;
+	if (!MakeSurface_File("Fade", SURFACE_ID_FADE))
+		return FALSE;
+	if (!MakeSurface_Resource("CREDIT01", SURFACE_ID_CREDITS_IMAGE))
+		return FALSE;
+	return TRUE;
+}
 
+void MakeGenericSurfaces()
+{
 	MakeSurface_Generic(WINDOW_WIDTH, WINDOW_HEIGHT, SURFACE_ID_SCREEN_GRAB, TRUE);
 	MakeSurface_Generic(320, 240, SURFACE_ID_LEVEL_BACKGROUND, FALSE);
 	MakeSurface_Generic(WINDOW_WIDTH, WINDOW_HEIGHT, SURFACE_ID_MAP, TRUE);
@@ -211,7 +209,10 @@ BOOL LoadGenericData(void)
 	MakeSurface_Generic(40, 240, SURFACE_ID_VALUE_VIEW, FALSE);
 	MakeSurface_Generic(320, 240, SURFACE_ID_LEVEL_SPRITESET_1, FALSE);
 	MakeSurface_Generic(320, 240, SURFACE_ID_LEVEL_SPRITESET_2, FALSE);
-	
+}
+
+void LoadSounds()
+{
 	MakePixToneObject(&gPtpTable[0], 2, 32);
 	MakePixToneObject(&gPtpTable[2], 2, 33);
 	MakePixToneObject(&gPtpTable[4], 2, 34);
@@ -221,7 +222,8 @@ BOOL LoadGenericData(void)
 	MakePixToneObject(&gPtpTable[9], 2, 50);
 	MakePixToneObject(&gPtpTable[11], 2, 51);
 	MakePixToneObject(&gPtpTable[33], 1, 1);
-	lpSECONDARYBUFFER[2] = AudioBackend_CreateSound(22050, sound02_data, sound02_size);//MakePixToneObject(&gPtpTable[38], 1, 2);
+	//MakePixToneObject(&gPtpTable[38], 1, 2);
+	MakePixToneObject(&gPtpTable[38], 2, 2);
 	MakePixToneObject(&gPtpTable[56], 1, 29);
 	MakePixToneObject(&gPtpTable[61], 1, 43);
 	MakePixToneObject(&gPtpTable[62], 3, 44);
@@ -301,5 +303,8 @@ BOOL LoadGenericData(void)
 	MakePixToneObject(&gPtpTable[136], 1, 3);
 	MakePixToneObject(&gPtpTable[137], 1, 6);
 	MakePixToneObject(&gPtpTable[138], 1, 7);
-	return TRUE;
+	
+	if (lpSECONDARYBUFFER[2] != NULL)
+		AudioBackend_DestroySound(lpSECONDARYBUFFER[2]);
+	lpSECONDARYBUFFER[2] = AudioBackend_CreateSound(22050, sound02_data, sound02_size);
 }

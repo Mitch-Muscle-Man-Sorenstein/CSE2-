@@ -17,6 +17,7 @@
 #include "Star.h"
 #include "TextScr.h"
 #include "ValueView.h"
+#include "Main.h"
 
 MYCHAR gMC;
 MYCHAR_Costume gMC_Costume;
@@ -24,12 +25,23 @@ MYCHAR_Costume gMC_Costume;
 void InitMyChar(void)
 {
 	//Set costume
-	static const MYCHAR_Costume difficulty_costumes[] = {
-		MCC_Easy,
-		MCC_Normal,
-		MCC_Hard,
-	};
-	gMC_Costume = difficulty_costumes[g_GameDifficulty];
+	switch (g_GameSeason)
+	{
+		case GS_Halloween:
+			gMC_Costume = MCC_Halloween;
+			break;
+		case GS_Christmas:
+			gMC_Costume = MCC_Christmas;
+			break;
+		default:
+			static const MYCHAR_Costume difficulty_costumes[] = {
+				MCC_Easy,
+				MCC_Normal,
+				MCC_Hard,
+			};
+			gMC_Costume = difficulty_costumes[g_GameDifficulty];
+			break;
+	}
 	
 	//Initialize my char
 	memset(&gMC, 0, sizeof(MYCHAR));

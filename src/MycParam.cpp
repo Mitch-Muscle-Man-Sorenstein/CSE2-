@@ -20,6 +20,8 @@
 #include "ValueView.h"
 #include "Filesystem.h"
 
+#define TIMECOUNTER_FPS 60
+
 ARMS_LEVEL gArmsLevelTable[14] =
 {
 	{{0,  0,  100}},
@@ -404,7 +406,7 @@ void PutTimeCounter(int x, int y)
 		// Draw clock and increase time
 		if (g_GameFlags & 2)
 		{
-			if (time_count < 100 * 60 * 50)	// 100 minutes
+			if (time_count < 100 * 60 * TIMECOUNTER_FPS)	// 100 minutes
 				++time_count;
 
 			if (time_count % 30 > 10)
@@ -418,9 +420,9 @@ void PutTimeCounter(int x, int y)
 		}
 
 		// Draw time
-		PutNumber4(x,		y, time_count / (60 * 50),	FALSE);
-		PutNumber4(x + 20,	y, time_count / 50 % 60,	TRUE);
-		PutNumber4(x + 32,	y, time_count / 5 % 10,		FALSE);
+		PutNumber4(x,		y, time_count / (60 * TIMECOUNTER_FPS),			FALSE);
+		PutNumber4(x + 20,	y, time_count / TIMECOUNTER_FPS % 60,			TRUE);
+		PutNumber4(x + 32,	y, time_count / (TIMECOUNTER_FPS / 10) % 10,	FALSE);
 		PutBitmap3(&grcGame, x + 30, y, &rcTime[2], SURFACE_ID_TEXT_BOX);
 	}
 	else

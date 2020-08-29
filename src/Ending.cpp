@@ -467,16 +467,21 @@ int Scene_DownIsland(int mode)
 		GetTrg();
 
 		// Escape menu
-		if (gKey & KEY_ESCAPE)
+		if (gKeyTrg & KEY_ESCAPE)
 		{
+			BackupSurface(SURFACE_ID_SCREEN_GRAB, &grcGame);
+			
 			switch (Call_Escape())
 			{
 				case enum_ESCRETURN_exit:
 					return enum_ESCRETURN_exit;
-
 				case enum_ESCRETURN_restart:
 					return enum_ESCRETURN_restart;
+				default:
+					break;
 			}
+			
+			PutBitmap4(&grcGame, 0, 0, &grcGame, SURFACE_ID_SCREEN_GRAB);
 		}
 
 		switch (mode)

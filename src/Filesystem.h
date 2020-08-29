@@ -9,6 +9,9 @@ enum FilesystemSource
 	FSS_Mod,
 };
 
-BOOL InitFilesystem(std::string modulePath);
+BOOL Filesystem_Init(std::string modulePath);
+void Filesystem_SetMod(std::string mod);
+std::string Filesystem_GetMod();
+
 std::string FindFile(FilesystemSource source, std::string name);
 FILE *OpenFile(FilesystemSource source, std::string name, const char *type);

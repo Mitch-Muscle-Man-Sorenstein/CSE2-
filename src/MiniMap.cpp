@@ -91,15 +91,16 @@ int MiniMapLoop(void)
 	{
 		GetTrg();
 
-		if (gKey & KEY_ESCAPE)
+		if (gKeyTrg & KEY_ESCAPE)
 		{
 			switch (Call_Escape())
 			{
 				case enum_ESCRETURN_exit:
 					return enum_ESCRETURN_exit;
-
 				case enum_ESCRETURN_restart:
 					return enum_ESCRETURN_restart;
+				default:
+					break;
 			}
 		}
 
@@ -136,15 +137,16 @@ int MiniMapLoop(void)
 		if (gKeyTrg & (gKeyOk | gKeyCancel))
 			break;
 
-		if (gKey & KEY_ESCAPE)
+		if (gKeyTrg & KEY_ESCAPE)
 		{
 			switch (Call_Escape())
 			{
 				case enum_ESCRETURN_exit:
 					return enum_ESCRETURN_exit;
-
 				case enum_ESCRETURN_restart:
 					return enum_ESCRETURN_restart;
+				default:
+					break;
 			}
 		}
 
@@ -180,15 +182,16 @@ int MiniMapLoop(void)
 	{
 		GetTrg();
 
-		if (gKey & KEY_ESCAPE)
+		if (gKeyTrg & KEY_ESCAPE)
 		{
 			switch (Call_Escape())
 			{
 				case enum_ESCRETURN_exit:
 					return enum_ESCRETURN_exit;
-
 				case enum_ESCRETURN_restart:
 					return enum_ESCRETURN_restart;
+				default:
+					break;
 			}
 		}
 

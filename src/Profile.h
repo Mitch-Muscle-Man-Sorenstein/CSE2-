@@ -11,6 +11,7 @@
 
 typedef struct PROFILE
 {
+	BOOL flag;
 	char code[8];
 	int stage;
 	MusicID music;
@@ -39,10 +40,10 @@ typedef struct PROFILE
 extern const char* const gDefaultName;
 extern const char* const gDefaultExt;
 extern const char* const gProfileCode;
-extern std::string gProfileId;
+extern unsigned int gProfileId;
 
-BOOL GetProfile(std::string id, PROFILE *profile);
-BOOL SaveProfile(std::string id);
-BOOL LoadProfile(std::string id);
-BOOL InitializeGame(std::string id);
-BOOL DeleteProfile(std::string id);
+BOOL GetProfile(unsigned int id, PROFILE *profile);
+BOOL SaveProfile(unsigned int id);
+BOOL LoadProfile(unsigned int id);
+BOOL InitializeGame(unsigned int id);
+BOOL DeleteProfile(unsigned int id);

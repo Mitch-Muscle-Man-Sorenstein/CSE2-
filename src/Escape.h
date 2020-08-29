@@ -1,4 +1,5 @@
 #pragma once
+#include "WindowsWrapper.h"
 
 enum enum_ESCRETURN
 {

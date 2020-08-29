@@ -7,4 +7,6 @@
 #define NUM_PXT 139
 extern PIXTONEPARAMETER gPtpTable[NUM_PXT];
 
-BOOL LoadGenericData(void);
+BOOL LoadSurfaces();
+void MakeGenericSurfaces();
+void LoadSounds();

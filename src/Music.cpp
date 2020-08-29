@@ -13,9 +13,6 @@
 #include "Music/Organya.h"
 #include "Music/Ogg.h"
 
-//Music type
-MusicType gMusicType;
-
 //Music base class
 class Music
 {
@@ -232,40 +229,57 @@ class Music_Ogg : public Music
 		}
 };
 
-//Music interface
+//Music state
 Music *music = nullptr;
 
+BOOL music_init = FALSE;
+MusicType music_type = MT_MAX;
+
+//Music interface
 void Music_Callback(int32_t *stream, unsigned long frequency, size_t len)
 {
-	music->Mix(stream, frequency, len);
+	if (music != nullptr)
+		music->Mix(stream, frequency, len);
 }
 
 void SetMusicType(MusicType type)
 {
-	if (type != gMusicType)
+	if (music_init)
 	{
-		AudioBackend_Lock();
-		
-		//Delete previous music class and create new one
-		delete music;
-		switch (gMusicType = type)
+		if (type != music_type)
 		{
-			case MT_Organya:
-				music = new Music_Organya();
-				break;
-			case MT_Ogg:
-				music = new Music_Ogg("Ogg");
-				break;
-			case MT_Ogg11:
-				music = new Music_Ogg("Ogg11");
-				break;
-			default:
-				music = nullptr;
-				break;
+			AudioBackend_Lock();
+			
+			//Delete previous music class and create new one
+			delete music;
+			switch (music_type = type)
+			{
+				case MT_Organya:
+					music = new Music_Organya();
+					break;
+				case MT_Ogg:
+					music = new Music_Ogg("Ogg");
+					break;
+				case MT_Ogg11:
+					music = new Music_Ogg("Ogg11");
+					break;
+				default:
+					music = nullptr;
+					break;
+			}
+			
+			AudioBackend_Unlock();
 		}
-		
-		AudioBackend_Unlock();
 	}
+	else
+	{
+		music_type = type;
+	}
+}
+
+MusicType GetMusicType()
+{
+	return music_type;
 }
 
 BOOL LoadMusic(const char *name)
@@ -273,7 +287,7 @@ BOOL LoadMusic(const char *name)
 	AudioBackend_Lock();
 	
 	//Load given song
-	if (music->Load(name))
+	if (music != nullptr && music->Load(name))
 	{
 		AudioBackend_Unlock();
 		return FALSE;
@@ -285,8 +299,15 @@ BOOL LoadMusic(const char *name)
 
 BOOL StartMusic()
 {
-	//Set music type
-	SetMusicType(MT_Ogg11);
+	//Initialize music
+	music_init = TRUE;
+	
+	if (music_type >= 0 && music_type < MT_MAX)
+	{
+		MusicType set_type = music_type;
+		music_type = MT_MAX;
+		SetMusicType(set_type);
+	}
 	
 	//Set music callback
 	AudioBackend_SetMusicCallback(Music_Callback);
@@ -307,28 +328,35 @@ void EndMusic()
 void PlayMusic()
 {
 	AudioBackend_Lock();
-	music->Play();
+	if (music != nullptr)
+		music->Play();
 	AudioBackend_Unlock();
 }
 
 void StopMusic()
 {
 	AudioBackend_Lock();
-	music->Stop();
+	if (music != nullptr)
+		music->Stop();
 	AudioBackend_Unlock();
 }
 
 void SetMusicPosition(unsigned int x)
 {
 	AudioBackend_Lock();
-	music->SetPosition(x);
+	if (music != nullptr)
+		music->SetPosition(x);
 	AudioBackend_Unlock();
 }
 
 unsigned int GetMusicPosition()
 {
 	AudioBackend_Lock();
-	unsigned int x = music->GetPosition();
+	unsigned int x;
+	if (music != nullptr)
+		x = music->GetPosition();
+	else
+		x = 0;
 	AudioBackend_Unlock();
 	return x;
 }
@@ -336,7 +364,8 @@ unsigned int GetMusicPosition()
 BOOL ChangeMusicVolume(signed int volume)
 {
 	AudioBackend_Lock();
-	music->SetVolume(volume);
+	if (music != nullptr)
+		music->SetVolume(volume);
 	AudioBackend_Unlock();
 	return TRUE;
 }
@@ -344,6 +373,7 @@ BOOL ChangeMusicVolume(signed int volume)
 void SetMusicFadeout()
 {
 	AudioBackend_Lock();
-	music->SetFadeout();
+	if (music != nullptr)
+		music->SetFadeout();
 	AudioBackend_Unlock();
 }

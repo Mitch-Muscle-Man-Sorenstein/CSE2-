@@ -345,6 +345,7 @@ FontObject* LoadFont(const char *font_filename, unsigned int cell_width, unsigne
 							if ((font_object->pages[i] = RenderBackend_CreateSurface(width, height, FALSE)) == NULL)
 							{
 								error = true;
+								FreeBitmap(image_buffer);
 								break;
 							}
 							
@@ -360,8 +361,9 @@ FontObject* LoadFont(const char *font_filename, unsigned int cell_width, unsigne
 								memcpy(dst_row, src_row, width * BITMAP_BPP);
 							}
 							
-							//Unlock surface
+							//Unlock surface and free bitmap
 							RenderBackend_UnlockSurface(font_object->pages[i], width, height);
+							FreeBitmap(image_buffer);
 						}
 						else
 						{

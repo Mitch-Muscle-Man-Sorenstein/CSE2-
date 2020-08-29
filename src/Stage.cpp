@@ -34,6 +34,7 @@ unsigned int gOldPos;
 MusicID gOldNo;
 
 STAGE_TABLE *gTMT = nullptr;
+size_t gTMT_size;
 
 BOOL LoadStageTable()
 {
@@ -42,14 +43,14 @@ BOOL LoadStageTable()
 		return FALSE;
 	
 	fseek(fp, 0, SEEK_END);
-	unsigned int entries = ftell(fp) / 0xE5;
+	gTMT_size = ftell(fp) / 0xE5;
 	fseek(fp, 0, SEEK_SET);
 	
-	if (gTMT != nullptr)
-		free(gTMT);
-	gTMT = (STAGE_TABLE*)malloc(entries * sizeof(STAGE_TABLE));
+	free(gTMT);
+	if ((gTMT = (STAGE_TABLE*)malloc(gTMT_size * sizeof(STAGE_TABLE))) == NULL)
+		return FALSE;
 	
-	for (unsigned int i = 0; i < entries; i++)
+	for (size_t i = 0; i < gTMT_size; i++)
 	{
 		fread(gTMT[i].parts, 0x20, 1, fp);
 		fread(gTMT[i].map, 0x20, 1, fp);
@@ -66,19 +67,21 @@ BOOL LoadStageTable()
 	return TRUE;
 }
 
+void FreeStageTable()
+{
+	free(gTMT);
+}
+
 BOOL TransferStage(int no, int w, int x, int y)
 {
 	std::string path;
 	std::string path_dir;
 	BOOL bError;
 	
-	//Load stage table
-	if (gTMT == nullptr)
-	{
-		if (!LoadStageTable())
-			return FALSE;
-	}
-
+	// If we can't load from the stage table, fail immediately
+	if (gTMT == NULL || no > gTMT_size)
+		return FALSE;
+	
 	// Move character
 	SetMyCharPosition(x * 0x10 * 0x200, y * 0x10 * 0x200);
 
@@ -148,63 +151,53 @@ BOOL TransferStage(int no, int w, int x, int y)
 }
 
 // Music
-const char* const gMusicTable[42] = {
-	"xxxx",
-	"wanpaku",
-	"anzen",
-	"gameover",
-	"gravity",
-	"weed",
-	"mdown2",
-	"fireeye",
-	"vivi",
-	"mura",
-	"fanfale1",
-	"ginsuke",
-	"cemetery",
-	"plant",
-	"kodou",
-	"fanfale3",
-	"fanfale2",
-	"dr",
-	"escape",
-	"jenka",
-	"maze",
-	"access",
-	"ironh",
-	"grand",
-	"curly",
-	"oside",
-	"requiem",
-	"wanpak2",
-	"quiet",
-	"lastcave",
-	"balcony",
-	"lastbtl",
-	"lastbt3",
-	"ending",
-	"zonbie",
-	"bdown",
-	"hell",
-	"jenka2",
-	"marine",
-	"ballos",
-	"toroko",
-	"white"
-};
+char **gMusicTable = nullptr;
+size_t gMusicTable_size;
+
+BOOL LoadMusicTable()
+{
+	FILE *fp = OpenFile(FSS_Mod, "music.tbl", "rb");
+	if (!fp)
+		return FALSE;
+	
+	fseek(fp, 0, SEEK_END);
+	gMusicTable_size = ftell(fp) / 0x10;
+	fseek(fp, 0, SEEK_SET);
+	
+	free(gMusicTable);
+	if ((gMusicTable = (char**)malloc(gMusicTable_size * sizeof(char**))) == NULL)
+		return FALSE;
+	
+	char **musicp = gMusicTable;
+	for (size_t i = 0; i < gMusicTable_size; i++)
+	{
+		*musicp = (char*)malloc(0x10);
+		fread(*musicp, 0x10, 1, fp);
+		musicp++;
+	}
+	
+	fclose(fp);
+	return TRUE;
+}
+
+void FreeMusicTable()
+{
+	free(gMusicTable);
+}
 
 void ChangeMusic(MusicID no)
 {
 	if (no != MUS_SILENCE && no == gMusicNo)
 		return;
-
+	
 	// Stop and keep track of old song
 	gOldPos = GetMusicPosition();
 	gOldNo = gMusicNo;
 	StopMusic();
 
 	// Load music
-	LoadMusic(gMusicTable[no]);
+	if (gMusicTable != NULL && no < gMusicTable_size)
+		LoadMusic(gMusicTable[no]);
 
 	// Reset position, volume, and then play the song
 	ChangeMusicVolume(100);

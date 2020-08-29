@@ -11,45 +11,6 @@
 #include "File.h"
 #include "Filesystem.h"
 
-void GetCompileDate(int *year, int *month, int *day)
-{
-	int i;
-	char strMonth[0x10];
-
-	const char *table[13] = {
-		"XXX",
-		"Jan",
-		"Feb",
-		"Mar",
-		"Apr",
-		"May",
-		"Jun",
-		"Jul",
-		"Aug",
-		"Sep",
-		"Oct",
-		"Nov",
-		"Dec",
-	};
-
-	sscanf(__DATE__, "%s %d %d", strMonth, day, year);	// The expansion of __DATE__ is not reproductible. TODO : Think about changing this to be reproductible
-
-	for (i = 0; i < 12; ++i)	// This being 12 instead of 13 might be a bug, but it works anyway by accident
-		if (!memcmp(&strMonth, table[i], 3))
-			break;
-
-	*month = i;
-}
-
-BOOL GetCompileVersion(int *v1, int *v2, int *v3, int *v4)
-{
-	*v1 = 1;
-	*v2 = 0;
-	*v3 = 0;
-	*v4 = 6;
-	return TRUE;
-}
-
 void DeleteLog(void)
 {
 	remove(FindFile(FSS_Module, "debug.txt").c_str());
@@ -113,9 +74,4 @@ BOOL IsShiftJIS(unsigned char c)
 		return TRUE;
 
 	return FALSE;
-}
-
-BOOL IsEnableBitmap(const char *path)
-{
-	return TRUE;
 }

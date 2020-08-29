@@ -14,27 +14,18 @@ int Call_Escape(void)
 		// Get pressed keys
 		GetTrg();
 		
-		if (gKeyTrg & KEY_ESCAPE) // Escape is pressed, quit game
+		//Exit if escape is pressed again
+		if (gKeyTrg & KEY_ESCAPE)
 		{
-			gKeyTrg = 0;
-			return enum_ESCRETURN_exit;
-		}
-		if (gKeyTrg & KEY_F1) // F1 is pressed, continue
-		{
+			gKeyInternal &= ~KEY_ESCAPE;
 			gKeyTrg = 0;
 			return enum_ESCRETURN_continue;
-		}
-		if (gKeyTrg & KEY_F2) // F2 is pressed, reset
-		{
-			gKeyTrg = 0;
-			return enum_ESCRETURN_restart;
 		}
 		
 		//Draw screen capture
 		PutBitmap4(&grcGame, 0, 0, &grcGame, SURFACE_ID_SCREEN_GRAB);
 		
 		PutFramePerSecound();
-		
 		if (!Flip_SystemTask())
 		{
 			// Quit if window is closed
@@ -43,5 +34,5 @@ int Call_Escape(void)
 		}
 	}
 
-	return enum_ESCRETURN_exit;
+	return enum_ESCRETURN_continue;
 }

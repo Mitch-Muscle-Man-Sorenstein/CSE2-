@@ -178,6 +178,8 @@ int MakePixToneObject(const PIXTONEPARAMETER *ptp, int ptp_num, int no)
 	}
 
 	// Create backend sound
+	if (lpSECONDARYBUFFER[no] != NULL)
+		AudioBackend_DestroySound(lpSECONDARYBUFFER[no]);
 	lpSECONDARYBUFFER[no] = AudioBackend_CreateSound(22050, mixed_pcm_buffer, sample_count);
 	free(pcm_buffer);
 

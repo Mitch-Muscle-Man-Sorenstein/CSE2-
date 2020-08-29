@@ -67,9 +67,10 @@ extern unsigned int gOldPos;
 extern MusicID gOldNo;
 
 extern STAGE_TABLE *gTMT;
+extern char **gMusicTable;
 
-extern const char* const gMusicTable[42];
-
+BOOL LoadStageTable();
 BOOL TransferStage(int no, int w, int x, int y);
+BOOL LoadMusicTable();
 void ChangeMusic(MusicID no);
 void ReCallMusic(void);

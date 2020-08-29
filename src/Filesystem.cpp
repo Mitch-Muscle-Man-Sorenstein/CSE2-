@@ -8,7 +8,7 @@ struct Filesystem
 	std::string module_path, base_path, season_path, mod_path; 
 } fs = {};
 
-BOOL InitFilesystem(std::string modulePath)
+BOOL Filesystem_Init(std::string modulePath)
 {
 	//Initialize paths
 	fs.module_path = modulePath + '/';
@@ -27,6 +27,24 @@ BOOL InitFilesystem(std::string modulePath)
 	}
 	fs.mod_path = "";
 	return TRUE;
+}
+
+void Filesystem_SetMod(std::string mod)
+{
+	if (mod.empty())
+		fs.mod_path = "";
+	else
+		fs.mod_path = fs.module_path + "data/" + mod + '/';
+}
+
+std::string Filesystem_GetMod()
+{
+	if (fs.mod_path.empty())
+		return "";
+	size_t last_slash = (fs.mod_path.substr(0, fs.mod_path.length() - 1)).find_last_of("/\\");
+	if (last_slash != std::string::npos)
+		return fs.mod_path.substr(last_slash + 1);
+	return fs.mod_path;
 }
 
 bool FileExists(std::string path)

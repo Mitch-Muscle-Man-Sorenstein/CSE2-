@@ -53,6 +53,26 @@ GameDifficulty g_GameDifficulty;
 int g_GameFlags;
 int gCounter;
 
+BOOL LoadAssets()
+{
+	LoadSounds();
+	if (!(LoadSurfaces() && LoadStageTable() && LoadMusicTable() && LoadNpcTable(FindFile(FSS_Mod, "npc.tbl").c_str())))
+		return FALSE;
+	return TRUE;
+}
+
+BOOL SetMod(std::string mod)
+{
+	if (Filesystem_GetMod() != mod)
+	{
+		//Set mod and reload tables
+		Filesystem_SetMod(mod);
+		if (!LoadAssets())
+			return FALSE;
+	}
+	return TRUE;
+}
+
 int Random(int min, int max)
 {
 	const int range = max - min + 1;
@@ -130,6 +150,8 @@ static int ModeOpening(void)
 	int frame_x;
 	int frame_y;
 	unsigned int wait;
+
+	SetMod("");
 
 	InitNpChar();
 	InitCaret();
@@ -306,6 +328,8 @@ static int ModeTitle(void)
 	
 	// Reset everything
 	CutNoise();
+	SetMod("");
+	gUseOriginalGraphics = false;
 	
 	// Initialize background
 	InitBack("bkMoon", 8);
@@ -359,11 +383,10 @@ static int ModeTitle(void)
 	MenuManager main_menu_manager(main_menu);
 	
 	//Save menu
-	std::unordered_map<std::string, bool> hasSave;
 	PROFILE saves[3];
-	hasSave["0"] = GetProfile("0", &saves[0]);
-	hasSave["1"] = GetProfile("1", &saves[1]);
-	hasSave["2"] = GetProfile("2", &saves[2]);
+	GetProfile(0, &saves[0]);
+	GetProfile(1, &saves[1]);
+	GetProfile(2, &saves[2]);
 	
 	enum SMID
 	{
@@ -412,9 +435,9 @@ static int ModeTitle(void)
 	};
 	
 	MenuEntry delete_menu[] = {
-		{TRUE, &hasSave["0"]},
-		{TRUE, &hasSave["1"]},
-		{TRUE, &hasSave["2"]},
+		{TRUE, &saves[0].flag},
+		{TRUE, &saves[1].flag},
+		{TRUE, &saves[2].flag},
 		{TRUE, nullptr},
 		{FALSE, nullptr}
 	};
@@ -456,28 +479,6 @@ static int ModeTitle(void)
 	{
 		//Get pressed keys
 		GetTrg();
-		
-		if (gKeyTrg & (gKeyArms | gKeyArmsRev))
-		{
-			int next_type = gMusicType;
-			if (gKeyTrg & gKeyArmsRev)
-			{
-				if (--next_type < MT_Organya)
-					next_type = MT_Ogg11;
-			}
-			else if (gKeyTrg & gKeyArms)
-			{
-				if (++next_type > MT_Ogg11)
-					next_type = MT_Organya;
-			}
-			
-			SetMusicType((MusicType)next_type);
-			
-			//Play music
-			if (g_GameSeason != GS_Pixel || !LoadMusic("ika"))
-				LoadMusic("curly");
-			PlayMusic();
-		}
 		
 		//Draw background
 		ActBack();
@@ -584,9 +585,9 @@ static int ModeTitle(void)
 						case SMID_Save2:
 						case SMID_Save3:
 							//Remember this specific profile id
-							gProfileId = std::to_string(id - SMID_Save1);
+							gProfileId = id - SMID_Save1;
 							
-							if (hasSave[gProfileId])
+							if (saves[gProfileId].flag)
 							{
 								//Play save (it exists)
 								mode = TM_Play;
@@ -611,7 +612,7 @@ static int ModeTitle(void)
 				
 				//Draw saves
 				for (int i = 0; i < 3; i++)
-					Title_PutSave(hasSave[std::to_string(i)] ? &saves[i] : nullptr, 20 + 50 * i, save_menu_manager.GetPos() == (SMID_Save1 + i));
+					Title_PutSave(saves[i].flag ? &saves[i] : nullptr, 20 + 50 * i, save_menu_manager.GetPos() == (SMID_Save1 + i));
 				
 				//Draw text boxes
 				Title_PutCenterTextBox(WINDOW_WIDTH / 2, 178, "Delete a Save", save_menu_manager.GetPos() == SMID_Delete);
@@ -691,7 +692,7 @@ static int ModeTitle(void)
 						case DMID_Save2:
 						case DMID_Save3:
 							mode = TM_DeleteConfirm;
-							gProfileId = std::to_string(id - DMID_Save1);
+							gProfileId = id - DMID_Save1;
 							delete_confirm_menu_manager.SetPos(DCMID_No);
 							break;
 						case DMID_Cancel:
@@ -702,7 +703,7 @@ static int ModeTitle(void)
 				
 				//Draw saves
 				for (int i = 0; i < 3; i++)
-					Title_PutSave(hasSave[std::to_string(i)] ? &saves[i] : nullptr, 50 + 50 * i, delete_menu_manager.GetPos() == (DMID_Save1 + i));
+					Title_PutSave(saves[i].flag ? &saves[i] : nullptr, 50 + 50 * i, delete_menu_manager.GetPos() == (DMID_Save1 + i));
 				
 				//Draw text boxes
 				Title_PutTextBox2((WINDOW_WIDTH / 2) - 26, 208, "Cancel", delete_menu_manager.GetPos() == DMID_Cancel);
@@ -724,7 +725,7 @@ static int ModeTitle(void)
 					{
 						case DCMID_Yes:
 							DeleteProfile(gProfileId);
-							hasSave[gProfileId] = false;
+							saves[gProfileId].flag = false;
 					//Fallthrough
 						case DCMID_No:
 							mode = TM_Save;
@@ -828,21 +829,6 @@ static int ModeAction(void)
 		// Get pressed keys
 		GetTrg();
 
-		// Escape menu
-		if (gKey & KEY_ESCAPE)
-		{
-			BackupSurface(SURFACE_ID_SCREEN_GRAB, &grcGame);
-			
-			switch (Call_Escape())
-			{
-				case enum_ESCRETURN_exit:
-					return 0;
-					
-				case enum_ESCRETURN_restart:
-					return 1;
-			}
-		}
-
 		if (swPlay % 2 && g_GameFlags & 1)	// The "swPlay % 2" part is always true
 		{
 			if (g_GameFlags & 2)
@@ -904,6 +890,24 @@ static int ModeAction(void)
 		PutBossLife();
 		PutFade();
 
+		// Escape menu
+		if (gKey & KEY_ESCAPE)
+		{
+			BackupSurface(SURFACE_ID_SCREEN_GRAB, &grcGame);
+			
+			switch (Call_Escape())
+			{
+				case enum_ESCRETURN_exit:
+					return 0;
+				case enum_ESCRETURN_restart:
+					return 1;
+				default:
+					break;
+			}
+			
+			PutBitmap4(&grcGame, 0, 0, &grcGame, SURFACE_ID_SCREEN_GRAB);
+		}
+
 		if (!(g_GameFlags & 4))
 		{
 			// Open inventory
@@ -920,6 +924,7 @@ static int ModeAction(void)
 						return 1;
 				}
 
+				PutBitmap4(&grcGame, 0, 0, &grcGame, SURFACE_ID_SCREEN_GRAB);
 				gMC.cond &= ~1;
 			}
 			else if (gMC.equip & EQUIP_MAP && gKeyTrg & gKeyMap)
@@ -934,6 +939,8 @@ static int ModeAction(void)
 					case enum_ESCRETURN_restart:
 						return 1;
 				}
+				
+				PutBitmap4(&grcGame, 0, 0, &grcGame, SURFACE_ID_SCREEN_GRAB);
 			}
 		}
 
@@ -1046,27 +1053,9 @@ BOOL Game(void)
 {
 	int mode;
 
-	if (!LoadGenericData())
-	{
-#ifdef JAPANESE
-		Backend_ShowMessageBox("エラー", "汎用ファイルが読めない");
-#else
-		Backend_ShowMessageBox("Error", "Couldn't read general purpose files");
-#endif
-
-		return FALSE;
-	}
-
-	if (!LoadNpcTable(FindFile(FSS_Mod, "npc.tbl").c_str()))
-	{
-#ifdef JAPANESE
-		Backend_ShowMessageBox("エラー", "NPCテーブルが読めない");
-#else
-		Backend_ShowMessageBox("Error", "Couldn't read the NPC table");
-#endif
-
-		return FALSE;
-	}
+	MakeGenericSurfaces();
+	Filesystem_SetMod("");
+	LoadAssets();
 
 	InitTextScript2();
 	InitSkipFlags();
