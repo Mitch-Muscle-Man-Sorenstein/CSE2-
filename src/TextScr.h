@@ -58,6 +58,7 @@ extern TEXT_SCRIPT gTS;
 extern const RECT gRect_line;
 
 void EncryptionBinaryData2(unsigned char *pData, long size);
+char *ReadTextScript(std::string name, long *size);
 BOOL InitTextScript2(void);
 void EndTextScript(void);
 BOOL LoadTextScript2(std::string name);

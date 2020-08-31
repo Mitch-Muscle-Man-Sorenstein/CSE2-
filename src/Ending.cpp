@@ -20,6 +20,7 @@
 #include "TextScr.h"
 #include "File.h"
 #include "Filesystem.h"
+#include "MyChar.h"
 
 struct CREDIT
 {
@@ -156,24 +157,25 @@ void ActionIllust(void)
 void PutIllust(void)
 {
 	RECT rcIllust = {0, 0, 160, 240};
-#if WINDOW_WIDTH != 320 || WINDOW_HEIGHT != 240
-	// Widescreen edit
 	RECT rcClip = {(WINDOW_WIDTH - 320) / 2, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 	PutBitmap3(&rcClip, (Illust.x / 0x200) + ((WINDOW_WIDTH - 320) / 2), (WINDOW_HEIGHT - 240) / 2, &rcIllust, SURFACE_ID_CREDITS_IMAGE);
-#else
-	PutBitmap3(&grcFull, (Illust.x / 0x200) + ((WINDOW_WIDTH - 320) / 2), (WINDOW_HEIGHT - 240) / 2, &rcIllust, SURFACE_ID_CREDITS_IMAGE);
-#endif
 }
 
 // Load illustration
 void ReloadIllust(int a)
 {
 	char name[16];
+	if (gMC.equip & EQUIP_MIMIGA_MASK)
+	{
+		sprintf(name, "CREDIT%02d%c", a, gUseOriginalGraphics ? 'b' : 'a');
+		if (ReloadBitmap_Resource(name, SURFACE_ID_CREDITS_IMAGE))
+			return;
+	}
 	sprintf(name, "CREDIT%02d", a);
 	ReloadBitmap_Resource(name, SURFACE_ID_CREDITS_IMAGE);
 }
 
-const char *credit_script = "credit.tsc";
+std::string credit_script = "credit.tsc";
 
 // Initialize and release credits
 void InitCreditScript(void)
@@ -187,7 +189,7 @@ void ReleaseCreditScript(void)
 {
 	if (Credit.pData != NULL)
 	{
-		// Free script data
+		//Free script data
 		free(Credit.pData);
 		Credit.pData = NULL;
 	}
@@ -196,36 +198,10 @@ void ReleaseCreditScript(void)
 // Start playing credits
 BOOL StartCreditScript(void)
 {
-	//Clear previously existing credits data
-	if (Credit.pData != NULL)
-	{
-		free(Credit.pData);
-		Credit.pData = NULL;
-	}
-
-	//Get file's size
-	std::string path = FindFile(FSS_Mod, credit_script);
-	Credit.size = GetFileSizeLong(path);
-	if (Credit.size == -1)
+	//Read credit script
+	free(Credit.pData);
+	if ((Credit.pData = ReadTextScript(credit_script, &Credit.size)) == nullptr)
 		return FALSE;
-	
-	//Allocate buffer data
-	Credit.pData = (char*)malloc(Credit.size);
-	if (Credit.pData == NULL)
-		return FALSE;
-	
-	//Open file
-	FILE *fp = fopen(path.c_str(), "rb");
-	if (fp == NULL)
-	{
-		free(Credit.pData);
-		return FALSE;
-	}
-	
-	//Read data
-	fread(Credit.pData, 1, Credit.size, fp);
-	EncryptionBinaryData2((unsigned char*)Credit.pData, Credit.size);
-	fclose(fp);
 	
 	//Reset credits
 	Credit.offset = 0;

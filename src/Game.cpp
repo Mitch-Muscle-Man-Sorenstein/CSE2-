@@ -376,6 +376,13 @@ static int ModeTitle(void)
 	};
 	TitleMode mode = TM_Title;
 	
+	//Saves
+	PROFILE saves[3];
+	GetProfile(0, &saves[0]);
+	GetProfile(1, &saves[1]);
+	GetProfile(2, &saves[2]);
+	BOOL hasSaves = saves[0].flag || saves[1].flag || saves[2].flag;
+	
 	//Main menu
 	static BOOL hasCurly = FALSE;
 	
@@ -400,11 +407,6 @@ static int ModeTitle(void)
 	MenuManager main_menu_manager(main_menu);
 	
 	//Save menu
-	PROFILE saves[3];
-	GetProfile(0, &saves[0]);
-	GetProfile(1, &saves[1]);
-	GetProfile(2, &saves[2]);
-	
 	enum SMID
 	{
 		SMID_Save1,
@@ -418,7 +420,7 @@ static int ModeTitle(void)
 		{TRUE, nullptr},
 		{TRUE, nullptr},
 		{TRUE, nullptr},
-		{TRUE, nullptr},
+		{TRUE, &hasSaves},
 		{TRUE, nullptr},
 		{FALSE, nullptr}
 	};
@@ -632,7 +634,8 @@ static int ModeTitle(void)
 					Title_PutSave(saves[i].flag ? &saves[i] : nullptr, 20 + 50 * i, save_menu_manager.GetPos() == (SMID_Save1 + i));
 				
 				//Draw text boxes
-				Title_PutCenterTextBox(WINDOW_WIDTH / 2, 178, "Delete a Save", save_menu_manager.GetPos() == SMID_Delete);
+				if (hasSaves)
+					Title_PutCenterTextBox(WINDOW_WIDTH / 2, 178, "Delete a Save", save_menu_manager.GetPos() == SMID_Delete);
 				Title_PutCenterTextBox(WINDOW_WIDTH / 2, 208, "Back", save_menu_manager.GetPos() == SMID_Back);
 				break;
 			}
@@ -913,7 +916,7 @@ static int ModeAction(void)
 		// Escape menu
 		if (gKey & KEY_ESCAPE)
 		{
-			BackupSurface(SURFACE_ID_SCREEN_GRAB, &grcGame);
+			BackupSurface(SURFACE_ID_SCREEN_GRAB, &grcFull);
 			
 			switch (Call_Escape())
 			{
@@ -925,7 +928,7 @@ static int ModeAction(void)
 					break;
 			}
 			
-			PutBitmap4(&grcGame, 0, 0, &grcGame, SURFACE_ID_SCREEN_GRAB);
+			PutBitmap4(&grcFull, 0, 0, &grcFull, SURFACE_ID_SCREEN_GRAB);
 		}
 
 		if (!(g_GameFlags & 4))

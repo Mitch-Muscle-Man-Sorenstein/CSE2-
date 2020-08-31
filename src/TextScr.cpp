@@ -77,7 +77,7 @@ void EncryptionBinaryData2(unsigned char *pData, long size)
 }
 
 //Common TSC read function
-char *ReadTSC(std::string name)
+char *ReadTextScript(std::string name, long *size)
 {
 	//Open file and get size
 	FILE *fp = OpenFile(FSS_Mod, name, "rb");
@@ -85,17 +85,20 @@ char *ReadTSC(std::string name)
 		return NULL;
 	
 	fseek(fp, 0, SEEK_END);
-	long size = ftell(fp);
+	long fp_size = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 	
 	//Allocate, read, and decrypt into a buffer
-	char *data = new char[size];
+	char *data = new char[fp_size];
 	if (data != NULL)
 	{
-		fread(data, size, 1, fp);
-		EncryptionBinaryData2((unsigned char*)data, size);
+		fread(data, fp_size, 1, fp);
+		EncryptionBinaryData2((unsigned char*)data, fp_size);
 	}
 	fclose(fp);
+	
+	if (size != NULL)
+		*size = fp_size;
 	return data;
 }
 
@@ -113,7 +116,7 @@ BOOL InitTextScript2(void)
 	memset(text, 0, sizeof(text));
 	
 	//Read head script
-	if ((gTS.head = ReadTSC("Head.tsc")) == NULL)
+	if ((gTS.head = ReadTextScript("Head.tsc", NULL)) == NULL)
 		return FALSE;
 	return TRUE;
 }
@@ -130,7 +133,7 @@ BOOL LoadTextScript2(std::string name)
 {
 	//Read given script
 	delete[] gTS.data;
-	if ((gTS.data = ReadTSC(name)) == NULL)
+	if ((gTS.data = ReadTextScript(name, NULL)) == NULL)
 		return FALSE;
 	
 	//Initialize other state things
@@ -144,7 +147,7 @@ BOOL LoadTextScript_Stage(std::string name)
 {
 	//Read given script
 	delete[] gTS.data;
-	if ((gTS.data = ReadTSC(name)) == NULL)
+	if ((gTS.data = ReadTextScript(name, NULL)) == NULL)
 		return FALSE;
 	
 	//Initialize other state things

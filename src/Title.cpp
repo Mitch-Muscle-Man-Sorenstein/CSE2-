@@ -12,8 +12,8 @@ void Title_PutLife(int x, int y, int life, int max_life)
 	rcCase.right = 64;
 	rcLife.right = ((life * 40) / max_life) - 1;
 
-	PutBitmap3(&grcGame, x, y, &rcCase, SURFACE_ID_TEXT_BOX);
-	PutBitmap3(&grcGame, x + 24, y, &rcLife, SURFACE_ID_TEXT_BOX);
+	PutBitmap3(&grcFull, x, y, &rcCase, SURFACE_ID_TEXT_BOX);
+	PutBitmap3(&grcFull, x + 24, y, &rcLife, SURFACE_ID_TEXT_BOX);
 	PutNumber4(x - 8, y, life, FALSE);
 }
 
@@ -33,7 +33,7 @@ void Title_PutSave(PROFILE *profile, int y, BOOL selected)
 		for (int i = 0; (code = profile->arms[i].code) != 0; i++)
 		{
 			RECT rcArms = {code * 16, 0, (code + 1) * 16, 16};
-			PutBitmap3(&grcGame, (WINDOW_WIDTH / 2) - 18 + i * 16, y + 3, &rcArms, SURFACE_ID_ARMS_IMAGE);
+			PutBitmap3(&grcFull, (WINDOW_WIDTH / 2) - 18 + i * 16, y + 3, &rcArms, SURFACE_ID_ARMS_IMAGE);
 		}
 		
 		//Draw saved time and saved map
@@ -56,7 +56,7 @@ void Title_PutSave(PROFILE *profile, int y, BOOL selected)
 		rcQuote.top += difficulty_costumes[profile->difficulty] * 64;
 		rcQuote.bottom += difficulty_costumes[profile->difficulty] * 64;
 		
-		PutBitmap3(&grcGame, (WINDOW_WIDTH / 2) + 36, y + 23, &rcQuote, SURFACE_ID_MY_CHAR);
+		PutBitmap3(&grcFull, (WINDOW_WIDTH / 2) + 36, y + 23, &rcQuote, SURFACE_ID_MY_CHAR);
 	}
 	else
 	{
@@ -92,13 +92,14 @@ void Title_PutBox(const RECT *rect, BOOL selected)
 	DEF_TPB_RECT(rcMD, 4, 4, 12, 12)
 	
 	//Clip rects
+	RECT boxM = {rect->left + 8, rect->top + 8, rect->right - 8, rect->bottom - 8};
 	RECT boxH = {0, rect->top + 8, WINDOW_WIDTH, rect->bottom - 8};
 	RECT boxV = {rect->left + 8, 0, rect->right - 8, WINDOW_HEIGHT};
 	
 	//Draw box NOW
 	for (int x = rect->left + 8; x < rect->right - 8; x += 8)
 		for (int y = rect->top + 8; y < rect->bottom - 8; y += 8)
-			PutBitmap3(rect, x, y, &rcMD, SURFACE_ID_UI);
+			PutBitmap3(&boxM, x, y, &rcMD, SURFACE_ID_UI);
 	
 	for (int x = rect->left + 8; x < rect->right - 8; x += 8)
 	{
