@@ -89,7 +89,7 @@ char *ReadTextScript(std::string name, long *size)
 	fseek(fp, 0, SEEK_SET);
 	
 	//Allocate, read, and decrypt into a buffer
-	char *data = new char[fp_size];
+	char *data = new char[fp_size + 1];
 	if (data != NULL)
 	{
 		fread(data, fp_size, 1, fp);
@@ -97,6 +97,10 @@ char *ReadTextScript(std::string name, long *size)
 	}
 	fclose(fp);
 	
+	//Append terminator key
+	data[fp_size] = '\0';
+	
+	//Return size and data
 	if (size != NULL)
 		*size = fp_size;
 	return data;
@@ -108,14 +112,14 @@ BOOL InitTextScript2(void)
 	//Get NOD colour
 	nod_color = GetCortBoxColor(RGB(0xFF, 0xFF, 0xFE));
 	
-	//Clear flags
+	//Reset state
 	gTS.mode = 0;
-	g_GameFlags &= ~4;
 	
 	//Clear text
 	memset(text, 0, sizeof(text));
 	
 	//Read head script
+	delete[] gTS.head;
 	if ((gTS.head = ReadTextScript("Head.tsc", NULL)) == NULL)
 		return FALSE;
 	return TRUE;

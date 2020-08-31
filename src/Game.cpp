@@ -56,10 +56,17 @@ int gCounter;
 
 BOOL LoadAssets()
 {
-	LoadSounds();
-	if (!(LoadSurfaces() && LoadStageTable() && LoadMusicTable() && LoadNpcTable()))
+	if (!(LoadSurfaces() && LoadSounds() && LoadStageTable() && LoadMusicTable() && LoadNpcTable() && InitTextScript2()))
 		return FALSE;
 	return TRUE;
+}
+
+void ReleaseAssets()
+{
+	EndTextScript();
+	ReleaseNpcTable();
+	ReleaseMusicTable();
+	ReleaseStageTable();
 }
 
 BOOL SetOriginalGraphics(BOOL use_original)
@@ -146,9 +153,10 @@ void PutNumber4(int x, int y, int value, BOOL bZero)
 
 BOOL TransitionWait()
 {
-	ChangeMusic(MUS_SILENCE);
-	for (int i = 0; i < 8; i++)
+	int wait = Backend_GetTicks();
+	while (Backend_GetTicks() < wait + 100)
 	{
+		GetTrg();
 		CortBox(&grcGame, 0x000000);
 		PutFramePerSecound();
 		if (!Flip_SystemTask())
@@ -543,6 +551,10 @@ static int ModeTitle(void)
 			}
 			case TM_Menu:
 			{
+				//Clear mod
+				mod = "";
+				SetMod("");
+				
 				//Go to quit menu if escape is pressed
 				if (gKeyTrg & KEY_ESCAPE)
 				{
@@ -560,17 +572,24 @@ static int ModeTitle(void)
 					switch (main_menu_manager.GetPos())
 					{
 						case MMID_StoryMode:
-							mode = TM_Save;
+							//Load saves
 							LoadSaves(0);
+							
+							//Go to save menu
+							mode = TM_Save;
 							save_menu_manager.SetPos(SMID_Save1);
 							break;
 						case MMID_CurlyStory:
-							mode = TM_Save;
+							//Use Curly Story mod and load saves
 							mod = "CurlyStory";
 							LoadSaves(10);
+							
+							//Go to save menu
+							mode = TM_Save;
 							save_menu_manager.SetPos(SMID_Save1);
 							break;
 						case MMID_Quit:
+							//Go to quit menu
 							mode = TM_Quit;
 							quit_menu_manager.SetPos(QMID_Yes);
 							break;
@@ -607,6 +626,9 @@ static int ModeTitle(void)
 			}
 			case TM_Save:
 			{
+				//Load selected mod
+				SetMod(mod);
+				
 				//Move cursor
 				save_menu_manager.MoveCursor();
 				
@@ -637,12 +659,14 @@ static int ModeTitle(void)
 							}
 							break;
 						case SMID_Delete:
+							//Go to save delete menu
 							mode = TM_Delete;
 							delete_menu_manager.SetPos(DMID_Save1);
 							break;
 						case SMID_Back:
+							//Go back to main menu
 							mode = TM_Menu;
-							mod = "";
+							main_menu_manager.SetPos(MMID_StoryMode);
 							break;
 					}
 				}
@@ -683,11 +707,13 @@ static int ModeTitle(void)
 						switch (new_menu_manager.GetPos())
 						{
 							case NMID_Play:
+								//Start game
 								mode = TM_Play;
 								break;
 							case NMID_Back:
+								//Go back to main menu
 								mode = TM_Menu;
-								mod = "";
+								main_menu_manager.SetPos(MMID_StoryMode);
 								break;
 						}
 					}
@@ -730,13 +756,15 @@ static int ModeTitle(void)
 						case DMID_Save1:
 						case DMID_Save2:
 						case DMID_Save3:
+							//Go to delete confirmation menu
 							mode = TM_DeleteConfirm;
 							gProfileId = saveBase + id - DMID_Save1;
 							delete_confirm_menu_manager.SetPos(DCMID_No);
 							break;
 						case DMID_Cancel:
+							//Go back to main menu
 							mode = TM_Menu;
-							mod = "";
+							main_menu_manager.SetPos(MMID_StoryMode);
 							break;
 					}
 				}
@@ -764,10 +792,12 @@ static int ModeTitle(void)
 					switch (delete_confirm_menu_manager.GetPos())
 					{
 						case DCMID_Yes:
+							//Delete save
 							DeleteProfile(gProfileId);
 							saves[gProfileId - saveBase].flag = false;
 					//Fallthrough
 						case DCMID_No:
+							//Go back to save menu
 							mode = TM_Save;
 							save_menu_manager.SetPos(SMID_Save1);
 							break;
@@ -798,8 +828,10 @@ static int ModeTitle(void)
 					switch (quit_menu_manager.GetPos())
 					{
 						case QMID_Yes:
+							//Exit game
 							return 0;
 						case QMID_No:
+							//Go back to main menu
 							mode = TM_Menu;
 							main_menu_manager.SetPos(MMID_StoryMode);
 							break;
@@ -812,18 +844,19 @@ static int ModeTitle(void)
 				Title_PutCenterTextBox(WINDOW_WIDTH / 2, 178, "No", quit_menu_manager.GetPos() == QMID_No);
 				break;
 			}
-			case TM_Play:
+			default:
 			{
 				break;
 			}
 		};
 		
+		//Render frame
 		PutFramePerSecound();
 		if (!Flip_SystemTask())
 			return 0;
-		SetMod(mod);
 	}
-
+	
+	//Enter action mode
 	ChangeMusic(MUS_SILENCE);
 	return 3;
 }
@@ -1095,15 +1128,16 @@ static int ModeNicalis()
 BOOL Game(void)
 {
 	int mode;
-
-	//Initialize and load stuff
-	MakeGenericSurfaces();
-	Filesystem_SetMod("");
-	if (!(LoadAssets() && InitTextScript2()))
-		return FALSE;
 	
+	//Initialize general stuff
+	MakeGenericSurfaces();
 	InitCreditScript();
 	InitSkipFlags();
+	
+	//Initialize and load assets
+	Filesystem_SetMod("");
+	if (!LoadAssets())
+		return FALSE;
 
 	//Enter game loop
 	mode = 4;
@@ -1120,11 +1154,8 @@ BOOL Game(void)
 	}
 
 	//Deinitialize and free stuff
-	EndMapData();
-	EndTextScript();
-	ReleaseNpcTable();
-	ReleaseStageTable();
-	ReleaseMusicTable();
+	ReleaseAssets();
 	ReleaseCreditScript();
+	EndMapData();
 	return TRUE;
 }

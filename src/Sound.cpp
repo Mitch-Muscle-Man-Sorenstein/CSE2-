@@ -91,24 +91,24 @@ void ChangeSoundFrequency(int no, unsigned long rate)	// 100がMIN9999がMAXで2
 {
 	if (!audio_backend_initialised)
 		return;
-
-	AudioBackend_SetSoundFrequency(lpSECONDARYBUFFER[no], (rate * 10) + 100);
+	if (lpSECONDARYBUFFER[no] != NULL)
+		AudioBackend_SetSoundFrequency(lpSECONDARYBUFFER[no], (rate * 10) + 100);
 }
 
 void ChangeSoundVolume(int no, long volume)	// 300がMAXで300がﾉｰﾏﾙ (300 is MAX and 300 is normal)
 {
 	if (!audio_backend_initialised)
 		return;
-
-	AudioBackend_SetSoundVolume(lpSECONDARYBUFFER[no], (volume - 300) * 8);
+	if (lpSECONDARYBUFFER[no] != NULL)
+		AudioBackend_SetSoundVolume(lpSECONDARYBUFFER[no], (volume - 300) * 8);
 }
 
 void ChangeSoundPan(int no, long pan)	// 512がMAXで256がﾉｰﾏﾙ (512 is MAX and 256 is normal)
 {
 	if (!audio_backend_initialised)
 		return;
-
-	AudioBackend_SetSoundPan(lpSECONDARYBUFFER[no], (pan - 256) * 10);
+	if (lpSECONDARYBUFFER[no] != NULL)
+		AudioBackend_SetSoundPan(lpSECONDARYBUFFER[no], (pan - 256) * 10);
 }
 
 // TODO - The stack frame for this function is inaccurate

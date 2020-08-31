@@ -2,8 +2,11 @@
 
 #include "WindowsWrapper.h"
 
-extern unsigned char gFlagNPC[1000];
-extern unsigned char gSkipFlag[8];
+#define NPC_FLAG_NUM	8000
+#define SKIP_FLAG_NUM	64
+
+extern unsigned char gFlagNPC[(NPC_FLAG_NUM + 7) / 8];
+extern unsigned char gSkipFlag[(SKIP_FLAG_NUM+7) / 8];
 
 void InitFlags(void);
 void InitSkipFlags(void);

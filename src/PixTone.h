@@ -12,6 +12,7 @@ typedef struct PIXTONEPARAMETER2
 
 typedef struct PIXTONEPARAMETER
 {
+	BOOL mod;
 	int use;
 	int size;
 	PIXTONEPARAMETER2 oMain;

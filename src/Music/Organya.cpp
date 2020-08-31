@@ -381,7 +381,7 @@ namespace Organya
 	bool Drum::ConstructBuffers(const Instance &organya)
 	{
 		PXT_SND *drum = &gPxtSnd[150 + wave_no];
-		if (buffer.SetData(drum->data, drum->size, 22050))
+		if (drum->data != nullptr && buffer.SetData(drum->data, drum->size, 22050))
 			return true;
 		return false;
 	}

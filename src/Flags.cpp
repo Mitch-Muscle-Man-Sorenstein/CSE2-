@@ -10,8 +10,8 @@
 #define UNSET_FLAG(x, i) ((x)[(i) / 8] &= ~(1 << ((i) % 8)))
 #define GET_FLAG(x, i) ((x)[(i) / 8] & (1 << ((i) % 8)))
 
-unsigned char gFlagNPC[1000];
-unsigned char gSkipFlag[8];
+unsigned char gFlagNPC[(NPC_FLAG_NUM + 7) / 8];
+unsigned char gSkipFlag[(SKIP_FLAG_NUM+7) / 8];
 
 // Flag initializers
 void InitFlags(void)
@@ -27,17 +27,19 @@ void InitSkipFlags(void)
 // NPC flags
 void SetNPCFlag(long a)
 {
-	SET_FLAG(gFlagNPC, a);
+	if (a >= 0 && a < NPC_FLAG_NUM)
+		SET_FLAG(gFlagNPC, a);
 }
 
 void CutNPCFlag(long a)
 {
-	UNSET_FLAG(gFlagNPC, a);
+	if (a >= 0 && a < NPC_FLAG_NUM)
+		UNSET_FLAG(gFlagNPC, a);
 }
 
 BOOL GetNPCFlag(long a)
 {
-	if (GET_FLAG(gFlagNPC, a))
+	if ((a >= 0 && a < NPC_FLAG_NUM) && GET_FLAG(gFlagNPC, a))
 		return TRUE;
 	else
 		return FALSE;
@@ -46,17 +48,19 @@ BOOL GetNPCFlag(long a)
 // Skip flags
 void SetSkipFlag(long a)
 {
-	SET_FLAG(gSkipFlag, a);
+	if (a >= 0 && a < SKIP_FLAG_NUM)
+		SET_FLAG(gSkipFlag, a);
 }
 
 void CutSkipFlag(long a)
 {
-	UNSET_FLAG(gSkipFlag, a);
+	if (a >= 0 && a < SKIP_FLAG_NUM)
+		UNSET_FLAG(gSkipFlag, a);
 }
 
 BOOL GetSkipFlag(long a)
 {
-	if (GET_FLAG(gSkipFlag, a))
+	if ((a >= 0 && a < SKIP_FLAG_NUM) && GET_FLAG(gSkipFlag, a))
 		return TRUE;
 	else
 		return FALSE;

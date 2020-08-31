@@ -11,6 +11,8 @@ unsigned long File_ReadBE32(FILE *stream);
 unsigned short File_ReadLE16(FILE *stream);
 unsigned long File_ReadLE32(FILE *stream);
 
+double File_ReadDouble(FILE *fp);
+
 void File_WriteBE16(unsigned short value, FILE *stream);
 void File_WriteBE32(unsigned long value, FILE *stream);
 void File_WriteLE16(unsigned short value, FILE *stream);
