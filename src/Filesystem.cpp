@@ -34,16 +34,17 @@ void Filesystem_SetMod(std::string mod)
 	if (mod.empty())
 		fs.mod_path = "";
 	else
-		fs.mod_path = fs.module_path + "data/" + mod + '/';
+		fs.mod_path = fs.module_path + "data/" + mod + "/mod/";
 }
 
 std::string Filesystem_GetMod()
 {
 	if (fs.mod_path.empty())
 		return "";
-	size_t last_slash = (fs.mod_path.substr(0, fs.mod_path.length() - 1)).find_last_of("/\\");
+	std::string sub = fs.mod_path.substr(0, fs.mod_path.length() - 5);
+	size_t last_slash = sub.find_last_of("/\\");
 	if (last_slash != std::string::npos)
-		return fs.mod_path.substr(last_slash + 1);
+		return sub.substr(last_slash + 1);
 	return fs.mod_path;
 }
 

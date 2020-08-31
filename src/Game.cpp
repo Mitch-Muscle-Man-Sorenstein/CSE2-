@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 #include <string>
-#include <unordered_map>
+#include <iostream>
 
 #include "WindowsWrapper.h"
 
@@ -260,6 +260,7 @@ static int ModeOpening(void)
 	return 2;
 }
 
+//Title menu manager
 struct MenuEntry
 {
 	BOOL flag;
@@ -320,6 +321,21 @@ class MenuManager
 		}
 };
 
+//Title saves
+PROFILE saves[3];
+int saveBase;
+BOOL hasSaves;
+
+void LoadSaves(int base)
+{
+	saveBase = base;
+	GetProfile(base + 0, &saves[0]);
+	GetProfile(base + 1, &saves[1]);
+	GetProfile(base + 2, &saves[2]);
+	hasSaves = saves[0].flag || saves[1].flag || saves[2].flag;
+}
+
+//Title loop
 static int ModeTitle(void)
 {
 	//Set rects
@@ -345,6 +361,7 @@ static int ModeTitle(void)
 	CutNoise();
 	
 	//Clear mod and use new graphics
+	std::string mod = "";
 	SetMod("");
 	SetOriginalGraphics(FALSE);
 	
@@ -376,15 +393,8 @@ static int ModeTitle(void)
 	};
 	TitleMode mode = TM_Title;
 	
-	//Saves
-	PROFILE saves[3];
-	GetProfile(0, &saves[0]);
-	GetProfile(1, &saves[1]);
-	GetProfile(2, &saves[2]);
-	BOOL hasSaves = saves[0].flag || saves[1].flag || saves[2].flag;
-	
 	//Main menu
-	static BOOL hasCurly = FALSE;
+	static BOOL hasCurly = TRUE;
 	
 	enum MMID
 	{
@@ -551,6 +561,13 @@ static int ModeTitle(void)
 					{
 						case MMID_StoryMode:
 							mode = TM_Save;
+							LoadSaves(0);
+							save_menu_manager.SetPos(SMID_Save1);
+							break;
+						case MMID_CurlyStory:
+							mode = TM_Save;
+							mod = "CurlyStory";
+							LoadSaves(10);
 							save_menu_manager.SetPos(SMID_Save1);
 							break;
 						case MMID_Quit:
@@ -604,7 +621,7 @@ static int ModeTitle(void)
 						case SMID_Save2:
 						case SMID_Save3:
 							//Remember this specific profile id
-							gProfileId = id - SMID_Save1;
+							gProfileId = saveBase + id - SMID_Save1;
 							
 							if (saves[gProfileId].flag)
 							{
@@ -625,6 +642,7 @@ static int ModeTitle(void)
 							break;
 						case SMID_Back:
 							mode = TM_Menu;
+							mod = "";
 							break;
 					}
 				}
@@ -669,6 +687,7 @@ static int ModeTitle(void)
 								break;
 							case NMID_Back:
 								mode = TM_Menu;
+								mod = "";
 								break;
 						}
 					}
@@ -712,11 +731,12 @@ static int ModeTitle(void)
 						case DMID_Save2:
 						case DMID_Save3:
 							mode = TM_DeleteConfirm;
-							gProfileId = id - DMID_Save1;
+							gProfileId = saveBase + id - DMID_Save1;
 							delete_confirm_menu_manager.SetPos(DCMID_No);
 							break;
 						case DMID_Cancel:
 							mode = TM_Menu;
+							mod = "";
 							break;
 					}
 				}
@@ -799,9 +819,9 @@ static int ModeTitle(void)
 		};
 		
 		PutFramePerSecound();
-
 		if (!Flip_SystemTask())
 			return 0;
+		SetMod(mod);
 	}
 
 	ChangeMusic(MUS_SILENCE);
@@ -818,8 +838,8 @@ static int ModeAction(void)
 
 	swPlay = 1;
 	
-	//Load selected graphics
-	SetOriginalGraphics(gConfig.original_graphics);
+	//Load selected graphics (only when no mods are enabled, thank you Nicalis)
+	SetOriginalGraphics(Filesystem_GetMod().empty() ? gConfig.original_graphics : FALSE);
 
 	// Reset stuff
 	gCounter = 0;
