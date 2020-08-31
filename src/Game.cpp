@@ -623,7 +623,7 @@ static int ModeTitle(void)
 							//Remember this specific profile id
 							gProfileId = saveBase + id - SMID_Save1;
 							
-							if (saves[gProfileId].flag)
+							if (saves[id - SMID_Save1].flag)
 							{
 								//Play save (it exists)
 								mode = TM_Play;
@@ -765,7 +765,7 @@ static int ModeTitle(void)
 					{
 						case DCMID_Yes:
 							DeleteProfile(gProfileId);
-							saves[gProfileId].flag = false;
+							saves[gProfileId - saveBase].flag = false;
 					//Fallthrough
 						case DCMID_No:
 							mode = TM_Save;
