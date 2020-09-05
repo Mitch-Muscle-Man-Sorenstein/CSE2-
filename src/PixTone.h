@@ -30,4 +30,4 @@ typedef struct PIXTONEPARAMETER
 extern signed char gWaveModelTable[6][0x100];
 
 void MakeWaveTables(void);
-BOOL MakePixelWaveData(const PIXTONEPARAMETER *ptp, unsigned char *pData);
+BOOL MakePixelWaveData(const PIXTONEPARAMETER *ptp, signed char *pData);

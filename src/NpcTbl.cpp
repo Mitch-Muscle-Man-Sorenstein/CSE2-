@@ -390,7 +390,7 @@ BOOL LoadNpcTable()
 	fseek(fp, 0, SEEK_SET);
 	
 	ReleaseNpcTable();
-	if ((gNpcTable = (NPC_TABLE*)malloc(gNpcTable_size * sizeof(NPC_TABLE))) == NULL)
+	if ((gNpcTable = new NPC_TABLE[gNpcTable_size]) == NULL)
 		return FALSE;
 	
 	size_t n;
@@ -421,9 +421,9 @@ BOOL LoadNpcTable()
 
 void ReleaseNpcTable(void)
 {
-	if (gNpcTable != NULL)
+	if (gNpcTable != nullptr)
 	{
-		free(gNpcTable);
-		gNpcTable = NULL;
+		delete[] gNpcTable;
+		gNpcTable = nullptr;
 	}
 }

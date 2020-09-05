@@ -15,10 +15,11 @@
 #include "Music.h"
 #include "PixTone.h"
 #include "Music.h"
+#include "File.h"
 
 BOOL audio_backend_initialised;
 AudioBackend_Sound *lpSECONDARYBUFFER[SE_MAX];
-PXT_SND gPxtSnd[SE_MAX] = {};
+PXT_SND gPxtSnd[SE_MAX]{};
 
 // DirectSoundの開始 (Starting DirectSound)
 BOOL InitDirectSound(void)
@@ -30,12 +31,6 @@ BOOL InitDirectSound(void)
 	if (!audio_backend_initialised)
 		return FALSE;
 	
-	for (i = 0; i < SE_MAX; i++)
-	{
-		lpSECONDARYBUFFER[i] = NULL;
-		gPxtSnd[i].data = nullptr;
-	}
-
 	StartMusic();
 	return TRUE;
 }
@@ -114,93 +109,79 @@ void ChangeSoundPan(int no, long pan)	// 512がMAXで256がﾉｰﾏﾙ (512 is 
 // TODO - The stack frame for this function is inaccurate
 int MakePixToneObject(const PIXTONEPARAMETER *ptp, int ptp_num, int no)
 {
-	int sample_count;
-	int i, j;
-	const PIXTONEPARAMETER *ptp_pointer;
-	unsigned char *pcm_buffer;
-	unsigned char *mixed_pcm_buffer;
-
 	if (!audio_backend_initialised)
-		return 0;
-
-	ptp_pointer = ptp;
-	sample_count = 0;
-
-	for (i = 0; i < ptp_num; i++)
+		return -1;
+	
+	//Get sample count
+	const PIXTONEPARAMETER *ptp_pointer = ptp;
+	int sample_count = 0;
+	for (int i = 0; i < ptp_num; i++)
 	{
 		if (ptp_pointer->size > sample_count)
 			sample_count = ptp_pointer->size;
-
 		++ptp_pointer;
 	}
-
-	pcm_buffer = mixed_pcm_buffer = NULL;
-
-	pcm_buffer = (unsigned char*)malloc(sample_count);
-	mixed_pcm_buffer = (unsigned char*)malloc(sample_count);
-
+	
+	//Allocate buffers
+	signed char *pcm_buffer = (signed char*)malloc(sample_count);
+	signed char *mixed_pcm_buffer = (signed char*)malloc(sample_count);
+	
 	if (pcm_buffer == NULL || mixed_pcm_buffer == NULL)
 	{
 		free(pcm_buffer);
 		free(mixed_pcm_buffer);
 		return -1;
 	}
-
-	memset(pcm_buffer, 0x80, sample_count);
-	memset(mixed_pcm_buffer, 0x80, sample_count);
-
+	memset(mixed_pcm_buffer, 0x00, sample_count);
+	
+	//Mix final buffer
 	ptp_pointer = ptp;
-
-	for (i = 0; i < ptp_num; i++)
+	while (ptp_num-- > 0)
 	{
+		//Synthesize
 		if (!MakePixelWaveData(ptp_pointer, pcm_buffer))
 		{
-			if (pcm_buffer != NULL) // This is always true
-				free(pcm_buffer);
-
-			if (mixed_pcm_buffer != NULL) // This is always true
-				free(mixed_pcm_buffer);
-
+			free(pcm_buffer);
+			free(mixed_pcm_buffer);
 			return -1;
 		}
-
-		for (j = 0; j < ptp_pointer->size; j++)
+		
+		//Mix
+		for (int j = 0; j < ptp_pointer->size; j++)
 		{
-			if (pcm_buffer[j] + mixed_pcm_buffer[j] - 0x100 < -0x7F)
-				mixed_pcm_buffer[j] = 0;
-			else if (pcm_buffer[j] + mixed_pcm_buffer[j] - 0x100 > 0x7F)
-				mixed_pcm_buffer[j] = 0xFF;
+			if ((signed char)pcm_buffer[j] + (signed char)mixed_pcm_buffer[j] < -0x7F)
+				mixed_pcm_buffer[j] = -0x7F;
+			else if ((signed char)pcm_buffer[j] + (signed char)mixed_pcm_buffer[j] > 0x7F)
+				mixed_pcm_buffer[j] = 0x7F;
 			else
-				mixed_pcm_buffer[j] = mixed_pcm_buffer[j] + pcm_buffer[j] - 0x80;
+				mixed_pcm_buffer[j] = mixed_pcm_buffer[j] + pcm_buffer[j];
 		}
-
+		
+		//Do next PixTone param
 		++ptp_pointer;
 	}
-
-	// Create backend sound
+	
+	//Create backend sound
 	if (lpSECONDARYBUFFER[no] != NULL)
 		AudioBackend_DestroySound(lpSECONDARYBUFFER[no]);
 	lpSECONDARYBUFFER[no] = AudioBackend_CreateSound(22050, mixed_pcm_buffer, sample_count);
 	free(pcm_buffer);
-
+	
+	//Store final buffer for drums or free it if not drums
 	if (no >= 150)
 	{
-		//Convert sound to signed 8 bit and store it for later usage
-		uint8_t *mpb = mixed_pcm_buffer;
-		for (int i = 0; i < sample_count; i++)
-			*mpb++ -= 0x80;
-		
 		PXT_SND *snd = &gPxtSnd[no];
-		snd->data = (int8_t*)mixed_pcm_buffer;
+		free(snd->data);
+		snd->data = (signed char*)mixed_pcm_buffer;
 		snd->size = sample_count;
 	}
 	else
 	{
 		free(mixed_pcm_buffer);
 	}
-
+	
+	//Return sample count or fail if backend sound wasn't created
 	if (lpSECONDARYBUFFER[no] == NULL)
 		return -1;
-
 	return sample_count;
 }

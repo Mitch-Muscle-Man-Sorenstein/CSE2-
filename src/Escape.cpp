@@ -7,6 +7,7 @@
 #include "KeyControl.h"
 #include "Main.h"
 #include "Sound.h"
+#include "Game.h"
 
 //Escape constants
 #define BOX_FRAMES	(12)
@@ -106,7 +107,16 @@ int Call_Escape(void)
 			{
 				PlaySoundObject(18, 1);
 				gKeyTrg &= ~gKeyOk;
-				return option ? enum_ESCRETURN_continue : enum_ESCRETURN_restart;
+				if (!option)
+				{
+					if (!TransitionWait())
+						return enum_ESCRETURN_exit;
+					return enum_ESCRETURN_restart;
+				}
+				else
+				{
+					return enum_ESCRETURN_continue;
+				}
 			}
 		}
 		

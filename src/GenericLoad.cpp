@@ -115,16 +115,21 @@ BOOL LoadPixToneTable()
 	}
 	
 	//Replace previous ptp table and close file
-	delete[] gPtpTable;
+	ReleasePixToneTable();
 	gPtpTable = new_tbl;
 	gPtpTable_size = entries;
+	
 	fclose(fp);
 	return TRUE;
 }
 
 void ReleasePixToneTable()
 {
-	delete[] gPtpTable;
+	if (gPtpTable != NULL)
+	{
+		delete[] gPtpTable;
+		gPtpTable = NULL;
+	}
 }
 
 BOOL LoadPixToneObject(int ptp, int ptp_num, int no)
@@ -136,7 +141,7 @@ BOOL LoadPixToneObject(int ptp, int ptp_num, int no)
 	{
 		if (gPtpTable[i].mod)
 		{
-			if (!MakePixToneObject(&gPtpTable[ptp], ptp_num, no))
+			if (MakePixToneObject(&gPtpTable[ptp], ptp_num, no) < 0)
 				return FALSE;
 		}
 	}
@@ -144,7 +149,7 @@ BOOL LoadPixToneObject(int ptp, int ptp_num, int no)
 }
 
 //Asset loading
-BOOL LoadSurfaces(void)
+BOOL LoadSurfaces()
 {
 	if (!MakeSurface_File("Nicalis", SURFACE_ID_NICALIS))
 		return FALSE;
@@ -286,11 +291,9 @@ BOOL LoadSounds()
 		LoadPixToneObject(136, 1, 3) &&
 		LoadPixToneObject(137, 1, 6))
 	{
-		if (lpSECONDARYBUFFER[2] == NULL)
-		{
-			if ((lpSECONDARYBUFFER[2] = AudioBackend_CreateSound(22050, sound02_data, sound02_size)) != NULL)
-				return TRUE;
-		}
+		if (lpSECONDARYBUFFER[2] == NULL && (lpSECONDARYBUFFER[2] = AudioBackend_CreateSound(22050, sound02_data, sound02_size)) == NULL)
+			return FALSE;
+		return TRUE;
 	}
 	return FALSE;
 }

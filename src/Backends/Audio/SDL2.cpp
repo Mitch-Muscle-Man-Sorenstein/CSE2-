@@ -103,7 +103,7 @@ void AudioBackend_Deinit(void)
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
-AudioBackend_Sound* AudioBackend_CreateSound(unsigned int frequency, const unsigned char *samples, size_t length)
+AudioBackend_Sound* AudioBackend_CreateSound(unsigned int frequency, const signed char *samples, size_t length)
 {
 	SDL_LockAudioDevice(device_id);
 

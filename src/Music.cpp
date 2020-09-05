@@ -284,16 +284,20 @@ MusicType GetMusicType()
 
 BOOL LoadMusic(const char *name)
 {
-	AudioBackend_Lock();
-	
 	//Load given song
-	if (music != nullptr && music->Load(name))
+	if (music != nullptr)
 	{
+		AudioBackend_Lock();
+		AudioBackend_SetMusicCallback(nullptr);
 		AudioBackend_Unlock();
-		return FALSE;
+		
+		BOOL result = music->Load(name);
+		
+		AudioBackend_Lock();
+		AudioBackend_SetMusicCallback(Music_Callback);
+		AudioBackend_Unlock();
+		return result;
 	}
-	
-	AudioBackend_Unlock();
 	return TRUE;
 }
 

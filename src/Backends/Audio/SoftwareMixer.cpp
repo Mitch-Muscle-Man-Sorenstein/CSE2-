@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../../Attributes.h"
 
@@ -34,7 +35,7 @@ static unsigned long output_frequency;
 
 static unsigned short MillibelToScale(long volume)
 {
-	// Volume is in hundredths of a decibel, from 0 to -10000
+	//Volume is in hundredths of a decibel, from 0 to -10000
 	volume = CLAMP(volume, -10000, 0);
 	return (unsigned short)(pow(10.0, volume / 2000.0) * 256.0f);
 }
@@ -44,36 +45,34 @@ void Mixer_Init(unsigned long frequency)
 	output_frequency = frequency;
 }
 
-Mixer_Sound* Mixer_CreateSound(unsigned int frequency, const unsigned char *samples, size_t length)
+Mixer_Sound* Mixer_CreateSound(unsigned int frequency, const signed char *samples, size_t length)
 {
+	//Allocate mixer sound object
 	Mixer_Sound *sound = (Mixer_Sound*)malloc(sizeof(Mixer_Sound));
-
 	if (sound == NULL)
 		return NULL;
-
+	
+	//Allocate and copy sound buffer data
 	sound->samples = (signed char*)malloc(length + 1);
-
 	if (sound->samples == NULL)
 	{
 		free(sound);
 		return NULL;
 	}
-
-	for (size_t i = 0; i < length; ++i)
-		sound->samples[i] = samples[i] - 0x80;	// Convert from unsigned 8-bit PCM to signed
-
+	memcpy(sound->samples, samples, length);
+	
+	//Initialize sound state
 	sound->frames = length;
 	sound->playing = false;
 	sound->position = 0;
 	sound->sample_offset_remainder = 0;
-
 	Mixer_SetSoundFrequency(sound, frequency);
 	Mixer_SetSoundVolume(sound, 0);
 	Mixer_SetSoundPan(sound, 0);
-
+	
+	//Add to sound linked list
 	sound->next = sound_list_head;
 	sound_list_head = sound;
-
 	return sound;
 }
 
@@ -118,7 +117,7 @@ void Mixer_SetSoundFrequency(Mixer_Sound *sound, unsigned int frequency)
 void Mixer_SetSoundVolume(Mixer_Sound *sound, long volume)
 {
 	sound->volume = MillibelToScale(volume);
-
+	
 	sound->volume_l = (sound->pan_l * sound->volume) >> 8;
 	sound->volume_r = (sound->pan_r * sound->volume) >> 8;
 }
@@ -127,12 +126,12 @@ void Mixer_SetSoundPan(Mixer_Sound *sound, long pan)
 {
 	sound->pan_l = MillibelToScale(-pan);
 	sound->pan_r = MillibelToScale(pan);
-
+	
 	sound->volume_l = (sound->pan_l * sound->volume) >> 8;
 	sound->volume_r = (sound->pan_r * sound->volume) >> 8;
 }
 
-// Most CPU-intensive function in the game (2/3rd CPU time consumption in my experience), so marked with ATTRIBUTE_HOT so the compiler considers it a hot spot (as it is) when optimizing
+//Most CPU-intensive function in the game (2/3rd CPU time consumption in my experience), so marked with ATTRIBUTE_HOT so the compiler considers it a hot spot (as it is) when optimizing
 ATTRIBUTE_HOT void Mixer_MixSounds(int32_t *stream, size_t frames_total)
 {
 	for (Mixer_Sound *sound = sound_list_head; sound != NULL; sound = sound->next)

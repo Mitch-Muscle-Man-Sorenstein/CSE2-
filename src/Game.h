@@ -40,4 +40,6 @@ extern int gCounter;
 int Random(int min, int max);
 void PutNumber4(int x, int y, int value, BOOL bZero);
 
+BOOL TransitionWait();
+
 BOOL Game(void);

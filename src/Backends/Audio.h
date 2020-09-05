@@ -10,7 +10,7 @@ typedef void (*MusicCallback)(int32_t *stream, unsigned long frequency, size_t l
 bool AudioBackend_Init(void);
 void AudioBackend_Deinit(void);
 
-AudioBackend_Sound* AudioBackend_CreateSound(unsigned int frequency, const unsigned char *samples, size_t length);
+AudioBackend_Sound* AudioBackend_CreateSound(unsigned int frequency, const signed char *samples, size_t length);
 void AudioBackend_DestroySound(AudioBackend_Sound *sound);
 
 void AudioBackend_PlaySound(AudioBackend_Sound *sound, bool looping);

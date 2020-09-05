@@ -31,8 +31,8 @@ enum SoundEffectNames
 
 struct PXT_SND
 {
-	int8_t *data = nullptr;
-	size_t size = 0;
+	signed char *data = nullptr;
+	size_t size;
 };
 
 extern BOOL audio_backend_initialised;

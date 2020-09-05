@@ -67,17 +67,7 @@ void ReleaseAssets()
 	ReleaseNpcTable();
 	ReleaseMusicTable();
 	ReleaseStageTable();
-}
-
-BOOL SetOriginalGraphics(BOOL use_original)
-{
-	if (gUseOriginalGraphics != use_original)
-	{
-		gUseOriginalGraphics = use_original;
-		if (!LoadSurfaces())
-			return FALSE;
-	}
-	return TRUE;
+	ReleasePixToneTable();
 }
 
 BOOL SetMod(std::string mod)
@@ -87,6 +77,17 @@ BOOL SetMod(std::string mod)
 		//Set mod and reload tables
 		Filesystem_SetMod(mod);
 		if (!LoadAssets())
+			return FALSE;
+	}
+	return TRUE;
+}
+
+BOOL SetOriginalGraphics(BOOL use_original)
+{
+	if (gUseOriginalGraphics != use_original)
+	{
+		gUseOriginalGraphics = use_original;
+		if (!LoadSurfaces())
 			return FALSE;
 	}
 	return TRUE;
@@ -153,8 +154,7 @@ void PutNumber4(int x, int y, int value, BOOL bZero)
 
 BOOL TransitionWait()
 {
-	int wait = Backend_GetTicks();
-	while (Backend_GetTicks() < wait + 100)
+	for (int i = 0; i < 8; i++)
 	{
 		GetTrg();
 		CortBox(&grcGame, 0x000000);
@@ -211,7 +211,7 @@ static int ModeOpening(void)
 		GetTrg();
 
 		// Skip intro if OK is pressed
-		if (gKey & gKeyOk)
+		if (gKeyTrg & gKeyOk)
 			break;
 
 		// Update everything
@@ -1041,7 +1041,7 @@ static int ModeAction(void)
 		}
 
 		PutMapName(FALSE);
-		PutTimeCounter(16, 8);
+		PutTimeCounter(WINDOW_WIDTH - 72, 17);
 
 		if (g_GameFlags & 2)
 		{

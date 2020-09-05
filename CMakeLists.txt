@@ -190,6 +190,8 @@ list(APPEND CMAKE_MODULE_PATH
 	"${CMAKE_SOURCE_DIR}/cmake"
 )
 
+set_target_properties(CSE2 PROPERTIES LINK_FLAGS_RELEASE -s)
+
 ##########################
 # miniaudio dependencies #
 ##########################
