@@ -9,8 +9,6 @@
 #include "Sound.h"
 #include "Game.h"
 
-#include "Stage.h"
-
 //Escape constants
 #define BOX_FRAMES	(12)
 
@@ -117,7 +115,6 @@ int Call_Escape(void)
 				}
 				else
 				{
-					TransferStage(0, 100, 0, 0);
 					return enum_ESCRETURN_continue;
 				}
 			}
