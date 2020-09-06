@@ -56,7 +56,7 @@ int gCounter;
 
 BOOL LoadAssets()
 {
-	if (!(LoadSurfaces() && LoadSounds() && LoadStageTable() && LoadMusicTable() && LoadNpcTable() && InitTextScript2()))
+	if (!(LoadSurfaces() && LoadStageTable() && LoadMusicTable() && LoadNpcTable() && InitTextScript2()))
 		return FALSE;
 	return TRUE;
 }
@@ -67,7 +67,6 @@ void ReleaseAssets()
 	ReleaseNpcTable();
 	ReleaseMusicTable();
 	ReleaseStageTable();
-	ReleasePixToneTable();
 }
 
 BOOL SetMod(std::string mod)
@@ -157,7 +156,7 @@ BOOL TransitionWait()
 	for (int i = 0; i < 8; i++)
 	{
 		GetTrg();
-		CortBox(&grcGame, 0x000000);
+		CortBox(&grcFull, 0x000000);
 		PutFramePerSecound();
 		if (!Flip_SystemTask())
 			return FALSE;
@@ -1131,6 +1130,7 @@ BOOL Game(void)
 	
 	//Initialize general stuff
 	MakeGenericSurfaces();
+	LoadSounds();
 	InitCreditScript();
 	InitSkipFlags();
 	

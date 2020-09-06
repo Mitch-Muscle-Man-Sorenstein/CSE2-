@@ -59,11 +59,11 @@ BOOL LoadEvent(std::string path_event)
 	int count;
 	char code[4];
 	EVENT eve;
-
+	
 	FILE *fp = OpenFile(FSS_Mod, path_event, "rb");
 	if (fp == NULL)
 		return FALSE;
-
+	
 	// Read "PXE" check
 	fread(code, 1, 4, fp);
 	if (memcmp(code, gPassPixEve, 3) != 0)
@@ -71,15 +71,15 @@ BOOL LoadEvent(std::string path_event)
 		fclose(fp);
 		return FALSE;
 	}
-
+	
 	// Get amount of NPCs
 	count = File_ReadLE32(fp);
-
+	
 	// Load NPCs
 	memset(gNPC, 0, sizeof(gNPC));
-
+	
 	n = 170;
-	for (i = 0; i < count; ++i)
+	for (i = 0; i < count; ++i, ++n)
 	{
 		// Get data from file
 		eve.x = File_ReadLE16(fp);
@@ -88,7 +88,21 @@ BOOL LoadEvent(std::string path_event)
 		eve.code_event = File_ReadLE16(fp);
 		eve.code_char = File_ReadLE16(fp);
 		eve.bits = File_ReadLE16(fp);
-
+		
+		//Check if NPC should be excluded in hard mode
+		if (g_GameDifficulty == GD_Hard)
+		{
+			if (eve.code_char == 32) //Life Capsule
+				continue;
+			if (eve.code_flag == 200 ||
+			    eve.code_flag == 218 ||
+			    eve.code_flag == 550 ||
+			    eve.code_flag == 880 ||
+			    eve.code_flag == 920 ||
+			    eve.code_flag == 1551)
+				continue;
+		}
+		
 		// Set NPC parameters
 		gNPC[n].direct = (eve.bits & NPC_SPAWN_IN_OTHER_DIRECTION) ? 2 : 0;
 		gNPC[n].code_char = eve.code_char;
@@ -100,7 +114,7 @@ BOOL LoadEvent(std::string path_event)
 		gNPC[n].bits |= gNpcTable[gNPC[n].code_char].bits;
 		gNPC[n].exp = gNpcTable[gNPC[n].code_char].exp;
 		SetUniqueParameter(&gNPC[n]);
-
+		
 		// Check flags
 		if (gNPC[n].bits & NPC_APPEAR_WHEN_FLAG_SET)
 		{
@@ -116,9 +130,6 @@ BOOL LoadEvent(std::string path_event)
 		{
 			gNPC[n].cond = 0x80;
 		}
-
-		// Increase index
-		++n;
 	}
 
 	fclose(fp);

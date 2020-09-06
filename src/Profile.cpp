@@ -92,11 +92,12 @@ BOOL GetProfile(unsigned int id, PROFILE *profile)
 	profile->flag = TRUE;
 	fclose(fp);
 	
-	//Get profile's time of modification (TEMP)
+	//Get profile's saved time
 	struct stat attrib;
 	stat(path.c_str(), &attrib);
 	struct tm *timeinfo = localtime(&attrib.st_mtime);
 	sprintf(profile->time, "%02d/%02d/%04d %02d:%02d%s", 1 + timeinfo->tm_mon, timeinfo->tm_mday, 1900 + timeinfo->tm_year, (timeinfo->tm_hour % 12) ? (timeinfo->tm_hour % 12) : 12, timeinfo->tm_min, timeinfo->tm_hour >= 12 ? "PM" : "AM");
+	//sprintf(profile->time, "%02d:%02d:%02d", profile->counter / (60 * 60 * 60), (profile->counter / (60 * 60)) % 60, (profile->counter / 60) % 60);
 	return TRUE;
 }
 

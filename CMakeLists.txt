@@ -105,7 +105,6 @@ add_executable(CSE2 WIN32
 	"src/Shoot.h"
 	"src/Sound.cpp"
 	"src/Sound.h"
-	"src/Sound02.h"
 	"src/Stage.cpp"
 	"src/Stage.h"
 	"src/Star.cpp"

@@ -948,12 +948,6 @@ void ActNpc031(NPCHAR *npc)
 // Life capsule
 void ActNpc032(NPCHAR *npc)
 {
-	if (g_GameDifficulty == GD_Hard)
-	{
-		npc->cond = 0;
-		return;
-	}
-	
 	RECT rect[2] = {
 		{32, 96, 48, 112},
 		{48, 96, 64, 112},
