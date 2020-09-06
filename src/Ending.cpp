@@ -84,7 +84,7 @@ void PutStripper(void)
 		if (Strip[s].flag & 0x80)
 		{
 			// Draw text
-			PutText((Strip[s].x / 0x200) + ((WINDOW_WIDTH - 320) / 2), (Strip[s].y / 0x200), Strip[s].str, 0xFFFFFF);
+			PutText(SubpixelToScreen(Strip[s].x) + ((WINDOW_WIDTH - 320) / 2), SubpixelToScreen(Strip[s].y), Strip[s].str, 0xFFFFFF);
 
 			// Draw character
 			rc.left = (Strip[s].cast % 13) * 24;
@@ -92,7 +92,7 @@ void PutStripper(void)
 			rc.top = (Strip[s].cast / 13) * 24;
 			rc.bottom = rc.top + 24;
 
-			PutBitmap3(&grcFull, (Strip[s].x / 0x200) + ((WINDOW_WIDTH - 320) / 2) - 24, (Strip[s].y / 0x200) - 8, &rc, SURFACE_ID_CASTS);
+			PutBitmap3(&grcFull, SubpixelToScreen(Strip[s].x) + ((WINDOW_WIDTH - 320) / 2) - 24, SubpixelToScreen(Strip[s].y) - 8, &rc, SURFACE_ID_CASTS);
 		}
 	}
 }
@@ -158,7 +158,7 @@ void PutIllust(void)
 {
 	RECT rcIllust = {0, 0, 160, 240};
 	RECT rcClip = {(WINDOW_WIDTH - 320) / 2, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
-	PutBitmap3(&rcClip, (Illust.x / 0x200) + ((WINDOW_WIDTH - 320) / 2), (WINDOW_HEIGHT - 240) / 2, &rcIllust, SURFACE_ID_CREDITS_IMAGE);
+	PutBitmap3(&rcClip, SubpixelToScreen(Illust.x) + ((WINDOW_WIDTH - 320) / 2), (WINDOW_HEIGHT - 240) / 2, &rcIllust, SURFACE_ID_CREDITS_IMAGE);
 }
 
 // Load illustration
@@ -492,7 +492,7 @@ int Scene_DownIsland(int mode)
 		// Draw scene
 		CortBox(&grcFull, 0);
 		PutBitmap3(&rc_frame, 80 + ((WINDOW_WIDTH - 320) / 2), 80 + ((WINDOW_HEIGHT - 240) / 2), &rc_sky, SURFACE_ID_LEVEL_SPRITESET_1);
-		PutBitmap3(&rc_frame, (sprite.x / 0x200) - 20 + ((WINDOW_WIDTH - 320) / 2), (sprite.y / 0x200) - 12 + ((WINDOW_HEIGHT - 240) / 2), &rc_sprite, SURFACE_ID_LEVEL_SPRITESET_1);
+		PutBitmap3(&rc_frame, SubpixelToScreen(sprite.x) - 20 + ((WINDOW_WIDTH - 320) / 2), SubpixelToScreen(sprite.y) - 12 + ((WINDOW_HEIGHT - 240) / 2), &rc_sprite, SURFACE_ID_LEVEL_SPRITESET_1);
 		PutBitmap3(&rc_frame, 80 + ((WINDOW_WIDTH - 320) / 2), 128 + ((WINDOW_HEIGHT - 240) / 2), &rc_ground, SURFACE_ID_LEVEL_SPRITESET_1);
 		PutTimeCounter(16, 8);
 

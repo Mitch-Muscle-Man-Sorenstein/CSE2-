@@ -159,7 +159,7 @@ void PutStage_Back(int fx, int fy)
 			rect.right = rect.left + 16;
 			rect.bottom = rect.top + 16;
 
-			PutBitmap3(&grcGame, ((i * 16) - 8) - (fx / 0x200), ((j * 16) - 8) - (fy / 0x200), &rect, SURFACE_ID_LEVEL_TILESET);
+			PutBitmap3(&grcGame, (float)((i * 16) - 8) - SubpixelToScreen(fx), (float)((j * 16) - 8) - SubpixelToScreen(fy), &rect, SURFACE_ID_LEVEL_TILESET);
 		}
 	}
 }
@@ -196,10 +196,10 @@ void PutStage_Front(int fx, int fy)
 			rect.right = rect.left + 16;
 			rect.bottom = rect.top + 16;
 
-			PutBitmap3(&grcGame, ((i * 16) - 8) - (fx / 0x200), ((j * 16) - 8) - (fy / 0x200), &rect, SURFACE_ID_LEVEL_TILESET);
+			PutBitmap3(&grcGame, (float)((i * 16) - 8) - SubpixelToScreen(fx), (float)((j * 16) - 8) - SubpixelToScreen(fy), &rect, SURFACE_ID_LEVEL_TILESET);
 
 			if (atrb == 0x43)
-				PutBitmap3(&grcGame, ((i * 16) - 8) - (fx / 0x200), ((j * 16) - 8) - (fy / 0x200), &rcSnack, SURFACE_ID_NPC_SYM);
+				PutBitmap3(&grcGame, (float)((i * 16) - 8) - SubpixelToScreen(fx), (float)((j * 16) - 8) - SubpixelToScreen(fy), &rcSnack, SURFACE_ID_NPC_SYM);
 		}
 	}
 }

@@ -370,85 +370,90 @@ void BackupSurface(SurfaceID surf_no, const RECT *rect)
 	RenderBackend_Blit(framebuffer, &rcSet, surf[surf_no], rcSet.left, rcSet.top, FALSE);
 }
 
-void PutBitmap3(const RECT *rcView, int x, int y, const RECT *rect, SurfaceID surf_no) // Transparency
+struct FloatRect
 {
-	static RenderBackend_Rect rcWork;
+	float left, top, right, bottom;
+};
 
-	rcWork.left = rect->left;
-	rcWork.top = rect->top;
-	rcWork.right = rect->right;
-	rcWork.bottom = rect->bottom;
-
+void PutBitmap3(const RECT *rcView, float x, float y, const RECT *rect, SurfaceID surf_no) // Transparency
+{
+	//Clip against view rect
+	FloatRect rcWork;
+	rcWork.left = (float)rect->left;
+	rcWork.top = (float)rect->top;
+	rcWork.right = (float)rect->right;
+	rcWork.bottom = (float)rect->bottom;
+	
 	if (x + rect->right - rect->left > rcView->right)
 		rcWork.right -= (x + rect->right - rect->left) - rcView->right;
-
+	
 	if (x < rcView->left)
 	{
-		rcWork.left += rcView->left - x;
+		rcWork.left += (float)rcView->left - x;
 		x = rcView->left;
 	}
-
+	
 	if (y + rect->bottom - rect->top > rcView->bottom)
 		rcWork.bottom -= (y + rect->bottom - rect->top) - rcView->bottom;
-
+	
 	if (y < rcView->top)
 	{
-		rcWork.top += rcView->top - y;
+		rcWork.top += (float)rcView->top - y;
 		y = rcView->top;
 	}
-
-	rcWork.left *= DRAW_SCALE;
-	rcWork.top *= DRAW_SCALE;
-	rcWork.right *= DRAW_SCALE;
-	rcWork.bottom *= DRAW_SCALE;
-
+	
 	// Do not draw invalid RECTs
 	if (rcWork.right <= rcWork.left || rcWork.bottom <= rcWork.top)
 		return;
-
-	RenderBackend_Blit(surf[surf_no], &rcWork, framebuffer, x * DRAW_SCALE, y * DRAW_SCALE, TRUE);
+	
+	RenderBackend_Rect rcFinal;
+	rcFinal.left = (int)(rcWork.left * DRAW_SCALE);
+	rcFinal.top = (int)(rcWork.top * DRAW_SCALE);
+	rcFinal.right = (int)(rcWork.right * DRAW_SCALE);
+	rcFinal.bottom = (int)(rcWork.bottom * DRAW_SCALE);
+	RenderBackend_Blit(surf[surf_no], &rcFinal, framebuffer, x * DRAW_SCALE, y * DRAW_SCALE, TRUE);
 }
 
-void PutBitmap4(const RECT *rcView, int x, int y, const RECT *rect, SurfaceID surf_no) // No Transparency
+void PutBitmap4(const RECT *rcView, float x, float y, const RECT *rect, SurfaceID surf_no) // No Transparency
 {
-	static RenderBackend_Rect rcWork;
-
-	rcWork.left = rect->left;
-	rcWork.top = rect->top;
-	rcWork.right = rect->right;
-	rcWork.bottom = rect->bottom;
-
+	//Clip against view rect
+	FloatRect rcWork;
+	rcWork.left = (float)rect->left;
+	rcWork.top = (float)rect->top;
+	rcWork.right = (float)rect->right;
+	rcWork.bottom = (float)rect->bottom;
+	
 	if (x + rect->right - rect->left > rcView->right)
 		rcWork.right -= (x + rect->right - rect->left) - rcView->right;
-
+	
 	if (x < rcView->left)
 	{
-		rcWork.left += rcView->left - x;
+		rcWork.left += (float)rcView->left - x;
 		x = rcView->left;
 	}
-
+	
 	if (y + rect->bottom - rect->top > rcView->bottom)
 		rcWork.bottom -= (y + rect->bottom - rect->top) - rcView->bottom;
-
+	
 	if (y < rcView->top)
 	{
-		rcWork.top += rcView->top - y;
+		rcWork.top += (float)rcView->top - y;
 		y = rcView->top;
 	}
-
-	rcWork.left *= DRAW_SCALE;
-	rcWork.top *= DRAW_SCALE;
-	rcWork.right *= DRAW_SCALE;
-	rcWork.bottom *= DRAW_SCALE;
-
+	
 	// Do not draw invalid RECTs
 	if (rcWork.right <= rcWork.left || rcWork.bottom <= rcWork.top)
 		return;
-
-	RenderBackend_Blit(surf[surf_no], &rcWork, framebuffer, x * DRAW_SCALE, y * DRAW_SCALE, FALSE);
+	
+	RenderBackend_Rect rcFinal;
+	rcFinal.left = (int)(rcWork.left * DRAW_SCALE);
+	rcFinal.top = (int)(rcWork.top * DRAW_SCALE);
+	rcFinal.right = (int)(rcWork.right * DRAW_SCALE);
+	rcFinal.bottom = (int)(rcWork.bottom * DRAW_SCALE);
+	RenderBackend_Blit(surf[surf_no], &rcFinal, framebuffer, x * DRAW_SCALE, y * DRAW_SCALE, FALSE);
 }
 
-void Surface2Surface(int x, int y, const RECT *rect, int to, int from)
+void Surface2Surface(float x, float y, const RECT *rect, int to, int from)
 {
 	static RenderBackend_Rect rcWork;
 
@@ -590,17 +595,17 @@ void InitTextObject(std::string name)
 	font = LoadFont(FindFile(FSS_Mod, name), 0, 0);
 }
 
-unsigned int GetTextWidth(const char *text)
+float GetTextWidth(const char *text)
 {
-	return GetFontTextWidth(font, text) / DRAW_SCALE;
+	return (float)GetFontTextWidth(font, text) / DRAW_SCALE;
 }
 
-void PutText(int x, int y, const char *text, unsigned long color)
+void PutText(float x, float y, const char *text, unsigned long color)
 {
 	DrawText(font, framebuffer, x * DRAW_SCALE, y * DRAW_SCALE, color, text);
 }
 
-void PutText2(int x, int y, const char *text, unsigned long color, SurfaceID surf_no)
+void PutText2(float x, float y, const char *text, unsigned long color, SurfaceID surf_no)
 {
 	DrawText(font, surf[surf_no], x * DRAW_SCALE, y * DRAW_SCALE, color, text);
 }
@@ -608,4 +613,12 @@ void PutText2(int x, int y, const char *text, unsigned long color, SurfaceID sur
 void EndTextObject(void)
 {
 	UnloadFont(font);
+}
+
+float SubpixelToScreen(int x)
+{
+	//if (gUseOriginalGraphics)
+		return (float)(x / 0x200);
+	//else
+	//	return (float)x / 512.0f;
 }

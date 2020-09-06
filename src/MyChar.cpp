@@ -223,15 +223,15 @@ void PutMyChar(int fx, int fy)
 	if (gMC.direct == 0)
 		PutBitmap3(
 			&grcGame,
-			((gMC.x - gMC.view.front) / 0x200) - (fx / 0x200) - 8,
-			((gMC.y - gMC.view.top) / 0x200) - (fy / 0x200) + arms_offset_y,
+			SubpixelToScreen(gMC.x - gMC.view.front) - SubpixelToScreen(fx) - 8,
+			SubpixelToScreen(gMC.y - gMC.view.top) - SubpixelToScreen(fy) + arms_offset_y,
 			&gMC.rect_arms,
 			SURFACE_ID_ARMS);
 	else
 		PutBitmap3(
 			&grcGame,
-			((gMC.x - gMC.view.front) / 0x200) - (fx / 0x200),
-			((gMC.y - gMC.view.top) / 0x200) - (fy / 0x200) + arms_offset_y,
+			SubpixelToScreen(gMC.x - gMC.view.front) - SubpixelToScreen(fx),
+			SubpixelToScreen(gMC.y - gMC.view.top) - SubpixelToScreen(fy) + arms_offset_y,
 			&gMC.rect_arms,
 			SURFACE_ID_ARMS);
 
@@ -248,7 +248,7 @@ void PutMyChar(int fx, int fy)
 	rect.top += gMC_Costume * 64;
 	rect.bottom += gMC_Costume * 64;
 
-	PutBitmap3(&grcGame, ((gMC.x - gMC.view.front) / 0x200) - (fx / 0x200), ((gMC.y - gMC.view.top) / 0x200) - (fy / 0x200), &rect, SURFACE_ID_MY_CHAR);
+	PutBitmap3(&grcGame, SubpixelToScreen(gMC.x - gMC.view.front) - SubpixelToScreen(fx), SubpixelToScreen(gMC.y - gMC.view.top) - SubpixelToScreen(fy), &rect, SURFACE_ID_MY_CHAR);
 
 	// Draw air tank
 	RECT rcBubble[2] = {
@@ -257,10 +257,8 @@ void PutMyChar(int fx, int fy)
 	};
 
 	++gMC.bubble;
-	if (gMC.equip & EQUIP_AIR_TANK && gMC.flag & 0x100)
-		PutBitmap3(&grcGame, (gMC.x / 0x200) - 12 - (fx / 0x200), (gMC.y / 0x200) - 12 - (fy / 0x200), &rcBubble[gMC.bubble / 2 % 2], SURFACE_ID_CARET);
-	else if (gMC.unit == 1)
-		PutBitmap3(&grcGame, (gMC.x / 0x200) - 12 - (fx / 0x200), (gMC.y / 0x200) - 12 - (fy / 0x200), &rcBubble[gMC.bubble / 2 % 2], SURFACE_ID_CARET);
+	if ((gMC.equip & EQUIP_AIR_TANK && gMC.flag & 0x100) || gMC.unit == 1)
+		PutBitmap3(&grcGame, SubpixelToScreen(gMC.x) - 12 - SubpixelToScreen(fx), SubpixelToScreen(gMC.y) - 12 - SubpixelToScreen(fy), &rcBubble[gMC.bubble / 2 % 2], SURFACE_ID_CARET);
 }
 
 void ActMyChar_Normal(BOOL bKey)

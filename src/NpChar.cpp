@@ -371,8 +371,8 @@ void PutNpChar(int fx, int fy)
 
 			PutBitmap3(
 				&grcGame,
-				(gNPC[n].x - side) / 0x200 - fx / 0x200 + a,
-				(gNPC[n].y - gNPC[n].view.top) / 0x200 - fy / 0x200,
+				SubpixelToScreen(gNPC[n].x - side) - SubpixelToScreen(fx) + a,
+				SubpixelToScreen(gNPC[n].y - gNPC[n].view.top) - SubpixelToScreen(fy),
 				&gNPC[n].rect,
 				(SurfaceID)gNPC[n].surf);
 		}

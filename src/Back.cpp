@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string>
+#include <math.h>
 
 #include "WindowsWrapper.h"
 
@@ -92,16 +93,16 @@ void ActBack(void)
 	}
 }
 
-void PutBack_Strip(int top, int bottom, int fx)
+void PutBack_Strip(int top, int bottom, float fx)
 {
 	RECT rect = {0, top, 320, bottom};
-	for (int x = -(fx % 320); x < WINDOW_WIDTH; x += 320)
+	for (float x = -std::fmod(fx, 320); x < WINDOW_WIDTH; x += 320)
 		PutBitmap4(&grcGame, x, top, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 }
 
 void PutBack(int fx, int fy)
 {
-	int x, y;
+	float x, y;
 	RECT rect = {0, 0, gBack.partsW, gBack.partsH};
 
 	switch (gBack.type)
@@ -114,22 +115,22 @@ void PutBack(int fx, int fy)
 			break;
 
 		case 1:
-			for (y = -((fy / 2 / 0x200) % gBack.partsH); y < WINDOW_HEIGHT; y += gBack.partsH)
-				for (x = -((fx / 2 / 0x200) % gBack.partsW); x < WINDOW_WIDTH; x += gBack.partsW)
+			for (y = -std::fmod(SubpixelToScreen(fy / 2), gBack.partsH); y < WINDOW_HEIGHT; y += gBack.partsH)
+				for (x = -std::fmod(SubpixelToScreen(fx / 2), gBack.partsW); x < WINDOW_WIDTH; x += gBack.partsW)
 					PutBitmap4(&grcGame, x, y, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			break;
 
 		case 2:
-			for (y = -((fy / 0x200) % gBack.partsH); y < WINDOW_HEIGHT; y += gBack.partsH)
-				for (x = -((fx / 0x200) % gBack.partsW); x < WINDOW_WIDTH; x += gBack.partsW)
+			for (y = -std::fmod(SubpixelToScreen(fy), gBack.partsH); y < WINDOW_HEIGHT; y += gBack.partsH)
+				for (x = -std::fmod(SubpixelToScreen(fx), gBack.partsW); x < WINDOW_WIDTH; x += gBack.partsW)
 					PutBitmap4(&grcGame, x, y, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			break;
 
 		case 5:
-			for (y = -gBack.partsH; y < WINDOW_HEIGHT; y += gBack.partsH)
-				for (x = -((gBack.fx / 0x200) % gBack.partsW); x < WINDOW_WIDTH; x += gBack.partsW)
+			for (y = 0; y < WINDOW_HEIGHT; y += gBack.partsH)
+				for (x = -std::fmod(SubpixelToScreen(gBack.fx), gBack.partsW); x < WINDOW_WIDTH; x += gBack.partsW)
 					PutBitmap4(&grcGame, x, y, &rect, SURFACE_ID_LEVEL_BACKGROUND);
 
 			break;
@@ -153,25 +154,25 @@ void PutBack(int fx, int fy)
 
 void PutFront(int fx, int fy)
 {
-	int xpos, ypos;
+	float xpos, ypos;
 
 	RECT rcWater[2] = {{0, 0, 32, 16}, {0, 16, 32, 48}};
 
-	int x, y;
-	int x_1, x_2;
-	int y_1, y_2;
+	float x, y;
+	float x_1, x_2;
+	float y_1, y_2;
 
 	switch (gBack.type)
 	{
 		case 3:
-			x_1 = fx / (32 * 0x200);
+			x_1 = (float)fx / (32 * 0x200);
 			x_2 = x_1 + (((WINDOW_WIDTH + (32 - 1)) / 32) + 1);
 			y_1 = 0;
 			y_2 = y_1 + 32;
 
 			for (y = y_1; y < y_2; ++y)
 			{
-				ypos = ((y * 32 * 0x200) / 0x200) - (fy / 0x200) + (gWaterY / 0x200);
+				ypos = SubpixelToScreen(y * 32 * 0x200) - SubpixelToScreen(fy) + SubpixelToScreen(gWaterY);
 
 				if (ypos < -32)
 					continue;
@@ -181,7 +182,7 @@ void PutFront(int fx, int fy)
 
 				for (x = x_1; x < x_2; ++x)
 				{
-					xpos = ((x * 32 * 0x200) / 0x200) - (fx / 0x200);
+					xpos = SubpixelToScreen(x * 32 * 0x200) - SubpixelToScreen(fx);
 					PutBitmap3(&grcGame, xpos, ypos, &rcWater[1], SURFACE_ID_LEVEL_BACKGROUND);
 					if (y == 0)
 						PutBitmap3(&grcGame, xpos, ypos, &rcWater[0], SURFACE_ID_LEVEL_BACKGROUND);

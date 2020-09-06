@@ -17,9 +17,9 @@ void MoveFrame3(void)
 	gFrame.x += (*gFrame.tgt_x - (WINDOW_WIDTH * 0x200 / 2) - gFrame.x) / gFrame.wait;
 	gFrame.y += (*gFrame.tgt_y - (WINDOW_HEIGHT * 0x200 / 2) - gFrame.y) / gFrame.wait;
 
-	if (gFrame.x / 0x200 < 0)
+	if (gFrame.x < 0)
 		gFrame.x = 0;
-	if (gFrame.y / 0x200 < 0)
+	if (gFrame.y < 0)
 		gFrame.y = 0;
 
 	if (gFrame.x > (((map_w - 1) * 16) - WINDOW_WIDTH) * 0x200)
@@ -40,12 +40,6 @@ void MoveFrame3(void)
 		gFrame.y += (Random(-1, 1) * 0x200);
 		--gFrame.quake;
 	}
-
-	// This code exists in the Linux port (v1.0.0.4), but not the Windows version (v1.0.0.6) or the Mac port
-/*	if (gFrame.x / 0x200 < 0)
-		gFrame.x = 0;
-	if (gFrame.y / 0x200 < 0)
-		gFrame.y = 0;*/
 }
 
 void GetFramePosition(int *fx, int *fy)

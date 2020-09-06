@@ -395,7 +395,7 @@ void PutTextScript(void)
 	if (gTS.face_x < (TEXT_LEFT * 0x200))
 		gTS.face_x += 0x1000;
 
-	PutBitmap3(&gTS.rcText, gTS.face_x / 0x200, gTS.rcText.top - 3, &rcFace, SURFACE_ID_FACE);
+	PutBitmap3(&gTS.rcText, SubpixelToScreen(gTS.face_x), gTS.rcText.top - 3, &rcFace, SURFACE_ID_FACE);
 
 	// Draw text
 	if (gTS.face != 0)

@@ -121,19 +121,19 @@ void Title_PutBox(const RECT *rect, BOOL selected)
 
 void Title_PutTextBox(int x, int y, const char *text, BOOL selected)
 {
-	RECT box = {x - 14, y - 8, x + GetTextWidth(text) + 14, y + 16};
+	RECT box = {x - 14, y - 8, x + (int)GetTextWidth(text) + 14, y + 16};
 	Title_PutBox(&box, selected);
 	PutText(x, y, text, 0xFFFFFF);
 }
 
 void Title_PutTextBox2(int x, int y, const char *text, BOOL selected)
 {
-	RECT box = {x - 8, y - 8, x + GetTextWidth(text) + 8, y + 16};
+	RECT box = {x - 8, y - 8, x + (int)GetTextWidth(text) + 8, y + 16};
 	Title_PutBox(&box, selected);
 	PutText(x, y, text, 0xFFFFFF);
 }
 
 void Title_PutCenterTextBox(int x, int y, const char *text, BOOL selected)
 {
-	Title_PutTextBox(x - GetTextWidth(text) / 2, y, text, selected);
+	Title_PutTextBox(x - (int)GetTextWidth(text) / 2, y, text, selected);
 }

@@ -135,5 +135,5 @@ void PutStar(int fx, int fy)
 
 	for (i = 0; i < 3; ++i)
 		if (i < gMC.star)
-			PutBitmap3(&grcGame, (star[i].x / 0x200) - (fx / 0x200) - 4, (star[i].y / 0x200) - (fy / 0x200) - 4, &rc[i], SURFACE_ID_MY_CHAR);
+			PutBitmap3(&grcGame, SubpixelToScreen(star[i].x) - SubpixelToScreen(fx) - 4, SubpixelToScreen(star[i].y) - SubpixelToScreen(fy) - 4, &rc[i], SURFACE_ID_MY_CHAR);
 }
