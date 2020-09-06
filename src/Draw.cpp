@@ -617,8 +617,16 @@ void EndTextObject(void)
 
 float SubpixelToScreen(int x)
 {
-	//if (gUseOriginalGraphics)
+	if (gUseOriginalGraphics)
+	{
+		if (x < 0)
+			x -= 0x1FF;
 		return (float)(x / 0x200);
-	//else
-	//	return (float)x / 512.0f;
+	}
+	else
+	{
+		if (x < 0)
+			x -= (0x200 / DRAW_SCALE) - 1;
+		return (float)(x / (0x200 / DRAW_SCALE)) / DRAW_SCALE;
+	}
 }
